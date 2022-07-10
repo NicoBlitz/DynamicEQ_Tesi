@@ -17,11 +17,13 @@ function audio = HelperMultibandCompressionSim(tuningUIStruct)
 % Instantiate and initialize System objects. The objects are declared
 % persistent so that they are not recreated every time the function is
 % called inside the simulation loop. 
+Common;
+
 persistent reader readerSC drc1 drc2 drc3 drc4 masker crossover player 
 masker = 0.0;
 
 if isempty(reader)
-    Fs = 44100;
+    Fs = SAMPLE_RATE;
     % audio I/O
     reader = dsp.AudioFileReader('Filename','RockGuitar-16-44p1-stereo-72secs.wav', ...
         'PlayCount',Inf,'SamplesPerFrame',512);

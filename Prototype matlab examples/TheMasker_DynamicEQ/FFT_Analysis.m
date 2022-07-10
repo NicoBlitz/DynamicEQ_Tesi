@@ -1,4 +1,4 @@
-function [X, Delta]  = FFT_Analysis(Input, n, Fs)
+function [X, Delta]  = FFT_Analysis(Input, n)
 %X = FFT_Analysis(Input, n)
 %
 %   Compute the auditory spectrum using the Fast Fourier Transform.
@@ -67,7 +67,7 @@ if (N < n - FFT_OVERLAP + FFT_SIZE - 1)
 end
 
 % Prepare the Hanning window
-h = sqrt(8/3) * hanning(512, 'periodic');
+h = sqrt(8/3) * hanning(FFT_SIZE, 'periodic');
 
 
 % Power density spectrum

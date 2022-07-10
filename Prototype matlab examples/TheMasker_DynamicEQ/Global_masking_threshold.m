@@ -47,7 +47,7 @@ end
 for i = 1:N
    
    % Threshold in quiet
-   temp = 10^(LTq(i) / 10);;
+   temp = 10^(LTq(i) / 10);
    
    % Contribution of the tonal component
    if not(isempty(LTi))

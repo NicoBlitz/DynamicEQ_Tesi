@@ -38,7 +38,7 @@ function [TH, Map, LTq] = Table_absolute_threshold(Layer, fs, bitrate)
 Common;
 
 if (Layer == 1)
-   if (fs == 44100)
+   if (fs == SAMPLE_RATE)
       % Frequency | Crit Band rate | Absolute threshold
       
       
@@ -46,7 +46,7 @@ if (Layer == 1)
       
       % Convert frequencies to samples indecies.
       for i = 1:N,
-         TH(i, INDEX) = round(TH(i, INDEX) / 44100 * 512);
+         TH(i, INDEX) = round(TH(i, INDEX) / fs * FFT_SIZE);
       end
       
       % Generate a mapping between the FFT_SIZE / 2 samples of the input
