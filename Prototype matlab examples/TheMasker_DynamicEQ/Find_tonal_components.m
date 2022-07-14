@@ -47,16 +47,7 @@ end
 Flags = zeros(FFT_SIZE / 2, 1) + NOT_EXAMINED;
 
 % Label the local maxima
-local_max_list = [];
-counter = 1;
-for k = 2:FFT_SIZE / 2 -  1, % Don't care avout the borders
-       %if (X(k) > X(k-1) & X(k) >= X(k+1) & k > 2 & k <= 250)
-   
-      local_max_list(counter, INDEX) = k;
-      local_max_list(counter, SPL) = X(k);
-      counter = counter + 1;
-   
-end
+
 % if (DRAW),
 %    disp('Local maxima.');
 %    plot(t, X(t), local_max_list(:, INDEX), local_max_list(:, SPL), 'ko');

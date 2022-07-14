@@ -39,29 +39,28 @@ Common;
 
 if (Layer == 1)
    if (fs == SAMPLE_RATE)
-      % Frequency | Crit Band rate | Absolute threshold
       
       
       N = length(TH(:, 1));
       
       % Convert frequencies to samples indecies.
-      for i = 1:N,
-         TH(i, INDEX) = round(TH(i, INDEX) / fs * FFT_SIZE);
+         for i = 1:N,
+         THmap(i, INDEX) = ceil(TH(i, FREQS) * FFT_SIZE / SAMPLE_RATE );
       end
       
       % Generate a mapping between the FFT_SIZE / 2 samples of the input
       % signal and the N coefficients of the absolute threshold table.
 
       % Borders
-      for j = 1:TH(1, INDEX),
+      for j = 1:THmap(1, INDEX),
          Map(j) = 1;
       end
-      for j = TH(N, INDEX):FFT_SIZE/2,
+      for j = THmap(N, INDEX):FFT_SIZE/2,
          Map(j) = N;
       end
       % All the other (from table)
       for i = 2:N-1,
-         for j = TH(i, INDEX):TH(i+1, INDEX) - 1,
+         for j = THmap(i, INDEX):THmap(N, INDEX)-1,
             Map(j) = i;
          end
       end
@@ -69,11 +68,11 @@ if (Layer == 1)
       % An offset depending on the overall bit rate is used for the absolute
       % threshold. This offset is -12dB for bit rates >=- 96kbits/s and 0dB
       % for bit rates < 96 kbits/s per channel. [1, pp. 111]
-      if (bitrate >= 96)
+%       if (bitrate >= 96)
          for i = 1:N,
             TH(i, ATH) = TH(i, ATH) - 12;
          end
-      end
+%       end
       
       LTq = TH(:, ATH);
    else

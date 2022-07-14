@@ -45,15 +45,17 @@ IRRELEVANT   = 3;
 MIN_POWER = -200;
 
 % Set to one to see the graphs and explanation text
-DRAW = 1;
+DRAW = 0;
 
 % Indices used in tables like the threshold table
 % or in the list of tonal and non-tonal components.
-INDEX = 1;
+FREQS = 4;
 BARK  = 2;
 SPL   = 2;
 ATH   = 3;
+INDEX = 1;
 
+      % Frequency | Crit Band rate | Absolute threshold
 
 % TH = [
 %             86.13   0.850  25.87  ;   172.27   1.694  14.85  ;
@@ -110,14 +112,71 @@ ATH   = 3;
 %          18949.22  24.473  68.00  ; 19293.75  24.508  68.00  ;
 %          19638.28  24.541  68.00  ; 19982.81  24.573  68.00
 %       ];
-step=SAMPLE_RATE/(FFT_SIZE);
-for i= 1:FFT_SIZE
-f=i*step;
-frequencies(i,1)=f;
-LTQ(i,1)=3.64*(f/1000)^-0.8 -6.5*exp(-0.6*(f/1000-3.3)^2)+1e-3*((f/1000)^4);
-CritBandWidth(i,1)=13*atan(0.00076*f)+3.5*atan((f/7500.0)^2);
-end
-TH = [frequencies(:,1), CritBandWidth(:,1), LTQ(:,1)];
+
+step=SAMPLE_RATE/FFT_SIZE;
+
+
+% maxfreq=SAMPLE_RATE/2.0
+%     maxbark=hz2bark(maxfreq)
+%     step_bark = maxbark/(nfilts-1)
+%     barks=range(0,nfilts)*step_bark
+
+% freqs
+f=logspace(1.30103,4.30103,FFT_SIZE);
+points=1000;
+% f=linspace(20,20000,FFT_SIZE);
+
+TH(:,FREQS)=f;
+
+
+
+% absolute thresholds (in quiet)
+%TH(:,ATH)=zeros(1,FFT_SIZE);
+TH(:,ATH)=3.64*(f./points)*(-0.8) - 6.5*exp((-0.6)*(f./points-3.3).^2)+1e-3*((f./points).^4);
+%TH(:,ATH)=10.0.^((TH(:,ATH)-60)/20)
+%f=np.linspace(0,fs/2,1025)
+%TH(:,ATH)=(3.64*(f/1000.)**-0.8 -6.5*np.exp(-0.6*(f/1000.-3.3)**2.)+1e-3*((f/1000.)**4.)),-20,80)
+
+if (TH(:,ATH) >=160) TH(:,ATH) = 160; end
+if (TH(:,ATH) <=-20) TH(:,ATH) = -20; end
+
+% indices
+TH(:,INDEX)=linspace(1,FFT_SIZE,FFT_SIZE);
+% Critical band rate
+TH(:,BARK)=13*atan(0.00076.*f)+3.5*atan((f./75*points).^2);
+
+%TH(:,BARK)= (((exp(0.219.*z)/352.0)+0.1).*z-0.032*exp(-0.15.*(z-5).^2))*points
+
+% 
+ if (DRAW)
+hold on; 
+disp('Local maxima.');
+   plot(f, TH(:,ATH), f, TH(:,ATH), 'ko');
+   xlabel('Frequency '); ylabel('dB'); title('Local maxima.');
+   axis([min(f) max(f) min(TH(:,ATH)) max(TH(:,ATH))]); %pause;
+  end
+% 
+% 
+
+
+
+%f=f+TH(:,BARK);
+ 
+% f=2*logspace(1,5,FFT_SIZE);
+% f=20;
+% CritBandWidth_start=13*atan(0.00076*f)+3.5*atan((f/7500.0)^2);
+% f=f+CritBandWidth_start/2;
+% for i= 1:FFT_SIZE
+% 
+% TH(i,FREQS)=f;
+% TH(i,ATH)=3.64*(f/1000)*(-0.8) - 6.5*exp((-0.6)*(f/1000-3.3)^2)+1e-3*((f/1000)^4);
+% if (TH(i,ATH) >=160) TH(i,ATH) = 160; end
+% if (TH(i,ATH) <=-20) TH(i,ATH) = -20; end
+% TH(i,BARK)=13*atan(0.00076*f)+3.5*atan((f/7500.0)^2);
+% TH(i,INDEX)=i;
+% f=f+TH(i,BARK);
+% end
+
 % TH = zeros(FFT_SIZE);
 % RBW_HZ = SAMPLE_RATE/(FFT_SIZE*4);
 % TH = (RBW_HZ : RBW_HZ : SAMPLE_RATE/2);

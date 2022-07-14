@@ -1,5 +1,4 @@
-function  LTi = Individual_masking_thresholds(X, local_maxima, ...
-   TH, Map)
+function  LTi = Individual_masking_thresholds(X, TH, Map)
 %[LTi, LTn] = Individual_masking_thresholds(X, local_maxima, ...
 %   Non_local_maxima, TH, Map)
 %
@@ -37,6 +36,36 @@ Common;
 % components are set to -infinity since the masking function has
 % infinite attenuation beyond -3 and +8 barks, that is the component
 % has no masking effect on frequencies beyond thos ranges [1, pp. 113--114]
+
+% Check input parameters
+if (length(X) ~= FFT_SIZE)
+   error('Unexpected power density spectrum size.');
+end
+
+if (DRAW),
+   t = 1:length(X);
+end
+
+local_maxima = [];
+counter = 1;
+for k = 2: FFT_SIZE/2 - 1 % Don't care about the borders
+       %if (X(k) > X(k-1) & X(k) >= X(k+1) & k > 2 & k <= 250)
+   
+      local_maxima(counter, INDEX) = k;
+      local_maxima(counter, SPL) = X(k);
+      counter = counter + 1;
+   
+end
+
+% if (DRAW)
+%    disp('Local maxima.');
+%    plot(t, X(t), local_maxima(:, INDEX), local_maxima(:, SPL), 'ko');
+%    xlabel('Frequency index'); ylabel('dB'); title('Local maxima.');
+%    axis([0 256 0 100]); pause;
+% end
+
+
+
 if isempty(local_maxima)
    LTi = [];
 else
@@ -82,13 +111,13 @@ for i = 1:length(TH(:, 1))
 end
 
 % Add the individual masking thresholds to the existing graph
-% if (DRAW)
-%    if not(isempty(local_maxima))
-% 		hold on;
-% 		for j = 1:length(local_maxima(:, 1))
-% 	   	plot(TH(:, INDEX), LTi(j, :), 'r:');
-% 	   end
-% 	   disp('Masking threshold for tonal components.');
-%       %pause;
-%    end
-% end
+if (DRAW)
+  if not(isempty(local_maxima))
+ 		hold on;
+ 	    for j = 1:length(local_maxima(:, 1))
+	   	    plot(TH(:, INDEX), LTi(j, :), 'r:');
+	    end
+	   disp('Masking threshold for tonal components.');
+      pause;
+   end
+end
