@@ -1,9 +1,11 @@
 % variables
+Common;
 fs=32000  % sampling frequency of audio signal
 maxfreq=fs/2
 alpha=0.8  %Exponent for non-linear superposition of spreading functions
 nfilts=64  %number of subbands in the bark domain
 nfft=2048  %number of fft subbands
+
 
 function spreadingfunctionBarkdB = f_SP_dB(maxfreq,nfilts)
     %usage: spreadingfunctionmatdB=f_SP_dB(maxfreq,nfilts)
@@ -20,9 +22,9 @@ function spreadingfunctionBarkdB = f_SP_dB(maxfreq,nfilts)
     spreadingfunctionBarkdB(1:nfilts)=linspace(-maxbark*27,-8,nfilts)-23.5
    
     %"nfilts" bands for upper slope:
-    spreadingfunctionBarkdB(nfilts:2*nfilts)=linspace(0,-maxbark*12.0,nfilts)-23.5
+    spreadingfunctionBarkdB(nfilts+1:2*nfilts)=linspace(0,-maxbark*12.0,nfilts)-23.5
     
-%da tradurre
+
 
 function spreadingfuncmatrix = spreadingfunctionmat(spreadingfunctionBarkdB,alpha,nfilts)
     %Turns the spreading prototype function into a matrix of shifted versions.
@@ -38,7 +40,7 @@ function spreadingfuncmatrix = spreadingfunctionmat(spreadingfunctionBarkdB,alph
     end
      
 
-maskingThresholdBark(mXbark,spreadingfuncmatrix,alpha,fs,nfilts): 
+function mTbark = maskingThresholdBark(mXbark,spreadingfuncmatrix,alpha,fs,nfilts) 
     %Computes the masking threshold on the Bark scale with non-linear superposition
     %usage: mTbark=maskingThresholdBark(mXbark,spreadingfuncmatrix,alpha)
     %Arg: mXbark: magnitude of FFT spectrum, on the Bark scale
@@ -49,7 +51,7 @@ maskingThresholdBark(mXbark,spreadingfuncmatrix,alpha,fs,nfilts):
     %Returns: mTbark: the resulting Masking Threshold on the Bark scale 
   
     %Compute the non-linear superposition:
-    mTbark=np.dot(mXbark^alpha, spreadingfuncmatrix^alpha)
+    mTbark=dot(mXbark^alpha, spreadingfuncmatrix^alpha)
   
     %apply the inverse exponent to the result:
     mTbark=mTbark^(1.0/alpha)
@@ -58,7 +60,8 @@ maskingThresholdBark(mXbark,spreadingfuncmatrix,alpha,fs,nfilts):
     maxfreq=fs/2.0
     maxbark=hz2bark(maxfreq)
     step_bark = maxbark/(nfilts-1)
-    barks=np.arange(0,nfilts)*step_bark
+    range_of_filts=(1:nfilts)
+    barks=range_of_filts*step_bark
   
     %convert the bark subband frequencies to Hz:
     f=bark2hz(barks)+1e-6
@@ -66,7 +69,7 @@ maskingThresholdBark(mXbark,spreadingfuncmatrix,alpha,fs,nfilts):
     LTQ=np.clip((3.64*(f/1000.)^-0.8 -6.5*np.exp(-0.6*(f/1000.-3.3)^2.)+1e-3*((f/1000.)^4.)),-20,160)
     %Maximum of spreading functions and hearing threshold in quiet:
     mTbark=np.max((mTbark, 10.0^((LTQ-60)/20)),0)
-    return mTbark    
+    return     
 
  hz2bark(f):
     """ Usage: Bark=hz2bark(f)
@@ -152,10 +155,10 @@ function mT = maskingThreshold(mX, W, W_inv,fs,spreadingfuncmatrix,alpha,nfft)
     mT=mappingfrombark(mTbark,W_inv,nfft);
     %Threshold in quiet:
     f=linspace(0,fs/2,1025);
-    LTQ=3.64*(f/1000.)^-0.8 -6.5*np.exp(-0.6*(f/1000.-3.3)^2.)+1e-3*((f/1000.)^4.);
+    LTQ=3.64*(f./1000)^-0.8 -6.5*exp(-0.6*(f./1000-3.3).^2)+1e-3*((f./1000).^4);
     mT=max(mT, 10.0^((LTQ-60)/20),0);
 
-   disp('Graph.');
+ disp('Graph.');
    plot(freqs, X(t), f, mT, 'ko');
    xlabel('Frequency'); ylabel('dB'); title('Graph');
    axis([20 20000 0 100]); pause;

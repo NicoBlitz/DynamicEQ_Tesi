@@ -85,5 +85,6 @@ X = max(20 * log10(abs(fft(s .* h))/ FFT_SIZE), MIN_POWER);
 
        
 % Normalization to the reference sound pressure level of 96 dB
-Delta = 96 - max(X);
+Delta = 96;
+%- max(X);
 

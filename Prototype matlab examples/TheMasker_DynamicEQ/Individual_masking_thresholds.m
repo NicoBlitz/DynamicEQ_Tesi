@@ -111,12 +111,19 @@ for i = 1:length(TH(:, 1))
 end
 
 % Add the individual masking thresholds to the existing graph
+f=TH(:, FREQS);
+
 if (DRAW)
   if not(isempty(local_maxima))
- 		hold on;
+ 		%hold on;
  	    for j = 1:length(local_maxima(:, 1))
-	   	    plot(TH(:, INDEX), LTi(j, :), 'r:');
-	    end
+               semilogx(f, LTi(j, :), '-r', 'LineWidth', 2);
+
+% 	   	    plot(f, LTi(j, :), 'r:');
+            xlabel('Frequency '); ylabel('dB'); title('Individual masking thresholds.');
+   axis([min(f) max(f) -100 100])
+        end
+        %hold off;
 	   disp('Masking threshold for tonal components.');
       pause;
    end

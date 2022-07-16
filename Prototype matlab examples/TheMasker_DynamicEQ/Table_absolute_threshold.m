@@ -69,9 +69,9 @@ if (Layer == 1)
       % threshold. This offset is -12dB for bit rates >=- 96kbits/s and 0dB
       % for bit rates < 96 kbits/s per channel. [1, pp. 111]
 %       if (bitrate >= 96)
-         for i = 1:N,
-            TH(i, ATH) = TH(i, ATH) - 12;
-         end
+%          for i = 1:N,
+%             TH(i, ATH) = TH(i, ATH) - 12;
+%          end
 %       end
       
       LTq = TH(:, ATH);

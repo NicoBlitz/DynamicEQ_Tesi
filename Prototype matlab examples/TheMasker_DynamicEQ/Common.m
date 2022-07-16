@@ -55,6 +55,8 @@ SPL   = 2;
 ATH   = 3;
 INDEX = 1;
 
+
+
       % Frequency | Crit Band rate | Absolute threshold
 
 % TH = [
@@ -144,15 +146,17 @@ if (TH(:,ATH) <=-20) TH(:,ATH) = -20; end
 TH(:,INDEX)=linspace(1,FFT_SIZE,FFT_SIZE);
 % Critical band rate
 TH(:,BARK)=13*atan(0.00076.*f)+3.5*atan((f./75*points).^2);
-
+%f= (((exp(0.219*z)/352.0)+0.1)*z-0.032*exp(-0.15*(z-5)**2))*1000
 %TH(:,BARK)= (((exp(0.219.*z)/352.0)+0.1).*z-0.032*exp(-0.15.*(z-5).^2))*points
 
 % 
  if (DRAW)
 hold on; 
-disp('Local maxima.');
-   plot(f, TH(:,ATH), f, TH(:,ATH), 'ko');
-   xlabel('Frequency '); ylabel('dB'); title('Local maxima.');
+disp('Absolute threshold in quiet.');
+%    plot(f, TH(:,ATH), f, TH(:,ATH), 'ko');
+   semilogx(f, TH(:,ATH), '-r', 'LineWidth', 2);
+ylabel('Magnitude (dB)');
+   xlabel('Frequency '); ylabel('dB'); title('Absolute threshold in quiet.');
    axis([min(f) max(f) min(TH(:,ATH)) max(TH(:,ATH))]); %pause;
   end
 % 
