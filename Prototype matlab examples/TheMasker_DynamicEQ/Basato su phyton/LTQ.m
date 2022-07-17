@@ -1,22 +1,8 @@
 % variables
 %
 classdef LTQ
+
 methods (Static)
-Shared;
-function Brk = hz2bark(f)
-%      Usage: Bark=hz2bark(f)
-%     f    : (ndarray)    Array containing frequencies in Hz.
-%     Returns  :
-%     Brk  : (ndarray)    Array containing Bark scaled values.
-%     
- 
-Brk = 6.*asinh(f./600)                                                
-end
-
-function FHz = bark2hz(Brk)
- Fhz = 600.* sinh(Brk/6.)
-end
-
 
 function [absThresh,barks] = AbsThresh(fs,nfilts)
 
@@ -34,17 +20,14 @@ function [absThresh,barks] = AbsThresh(fs,nfilts)
     absThresh(absThresh>160) = 160;
     absThresh(absThresh<-20) = -20;
      
-semilogx(barks, absThresh, barks, absThresh, 'ko');
-   %semilogx(f, TH(:,ATH), '-r', 'LineWidth', 2);
+% semilogx(barks, absThresh, barks, absThresh, 'ko');
+%    %semilogx(f, TH(:,ATH), '-r', 'LineWidth', 2);
+% 
+%    xlabel('Barks '); ylabel('?'); title('Absolute threshold in quiet.');
+%    axis([min(barks) max(barks) min(absThresh) max(absThresh)]); %pause;
 
-   xlabel('Barks '); ylabel('?'); title('Absolute threshold in quiet.');
-   axis([min(barks) max(barks) min(absThresh) max(absThresh)]); %pause;
+end
 
-
-
-
-
-    end
 
  end
 

@@ -74,7 +74,10 @@ if (Layer == 1)
 %          end
 %       end
       
-      LTq = TH(:, ATH);
+      %LTq = TH(:, ATH);
+      [absThresh,barks,freqs] = LTQ.AbsThresh(fs,nfilts);
+
+    LTq= absThresh;
    else
       error('Frequency not supported.');
    end

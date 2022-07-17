@@ -1,4 +1,4 @@
-
+%clear;
 
 function scopeHandles = TheMasker( ...
     genCode,plotResults,numTSteps)

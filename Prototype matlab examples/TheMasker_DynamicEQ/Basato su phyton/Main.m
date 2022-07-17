@@ -1,16 +1,18 @@
 clear;
 
 Shared;
-% LTQ;
+function launch()  
+
+persistent readerSC
+ readerSC = dsp.AudioFileReader('Filename','..\audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav', ...
+       'PlayCount',Inf,'SamplesPerFrame',nfft*2);
 
 
-[absThresh,barks] = LTQ.AbsThresh(fs,nfilts);
-
-semilogx(barks, absThresh, barks, absThresh, 'ko');
-   %semilogx(f, TH(:,ATH), '-r', 'LineWidth', 2);
-
-   xlabel('Barks '); ylabel('?'); title('Absolute threshold in quiet.');
-   axis([min(barks) max(barks) min(absThresh) max(absThresh)]); %pause;
+ y = getMaskingThreshold(readerSC);
 
 
- 
+plottalo(x,y);
+
+
+   
+end

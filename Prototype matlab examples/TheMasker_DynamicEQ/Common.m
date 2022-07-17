@@ -28,13 +28,23 @@
 %    postal box 56, CH-1211 Geneva 20, Telephone +41 22 749 0111, Telefax
 %    +4122 734 1079. Copyright remains with ISO.
 %-------------------------------------------------------------------------------
+%fs=SAMPLE_RATE;  % sampling frequency of audio signal
+%maxfreq=fs/2
+%nfilts=64;  %number of subbands in the bark domain
+%nfft=2048;  %number of fft subbands
+
 
 FFT_SHIFT   = 384;
 FFT_SIZE    = 512;
 FFT_OVERLAP = (FFT_SIZE - FFT_SHIFT) / 2;
 SAMPLE_RATE = 44100;
-
 N_SUBBAND = 32;
+
+alpha=0.8;  %Exponent for non-linear superposition of spreading functions
+
+fs=SAMPLE_RATE; 
+nfilts=N_SUBBAND;
+nfft=FFT_SIZE;
 
 % Flags for tonal analysis
 NOT_EXAMINED = 0;
@@ -125,62 +135,35 @@ step=SAMPLE_RATE/FFT_SIZE;
 
 % freqs
 f=logspace(1.30103,4.30103,FFT_SIZE);
-points=1000;
 % f=linspace(20,20000,FFT_SIZE);
 
 TH(:,FREQS)=f;
 
+%[absThresh,barks,freqs] = LTQ.AbsThresh(fs,nfilts);
+%absThresh = 10.0.^((absThresh-60)/20);
+
+%plot barks/dBSPL
+
+% semilogx(barks, absThresh, barks, absThresh, 'ko');
+% 
+%    xlabel('Barks '); ylabel('dBSPL'); title('Absolute threshold in quiet.');
+%    axis([min(barks) max(barks) min(absThresh) max(absThresh)]); %pause;
+
+%plot freqs/dBSPL
+
+%  
+% semilogx(freqs, absThresh, freqs, absThresh, 'ko');
+% 
+%    xlabel('Hz '); ylabel('dBSPL'); title('Absolute threshold in quiet.');
+%    axis([min(freqs) max(freqs) min(absThresh) max(absThresh)]); %pause;
+% 
 
 
-% absolute thresholds (in quiet)
-%TH(:,ATH)=zeros(1,FFT_SIZE);
-TH(:,ATH)=3.64*(f./points)*(-0.8) - 6.5*exp((-0.6)*(f./points-3.3).^2)+1e-3*((f./points).^4);
-%TH(:,ATH)=10.0.^((TH(:,ATH)-60)/20)
-%f=np.linspace(0,fs/2,1025)
-%TH(:,ATH)=(3.64*(f/1000.)**-0.8 -6.5*np.exp(-0.6*(f/1000.-3.3)**2.)+1e-3*((f/1000.)**4.)),-20,80)
-
-if (TH(:,ATH) >=160) TH(:,ATH) = 160; end
-if (TH(:,ATH) <=-20) TH(:,ATH) = -20; end
 
 % indices
 TH(:,INDEX)=linspace(1,FFT_SIZE,FFT_SIZE);
 % Critical band rate
-TH(:,BARK)=13*atan(0.00076.*f)+3.5*atan((f./75*points).^2);
-%f= (((exp(0.219*z)/352.0)+0.1)*z-0.032*exp(-0.15*(z-5)**2))*1000
-%TH(:,BARK)= (((exp(0.219.*z)/352.0)+0.1).*z-0.032*exp(-0.15.*(z-5).^2))*points
-
-% 
- if (DRAW)
-hold on; 
-disp('Absolute threshold in quiet.');
-%    plot(f, TH(:,ATH), f, TH(:,ATH), 'ko');
-   semilogx(f, TH(:,ATH), '-r', 'LineWidth', 2);
-ylabel('Magnitude (dB)');
-   xlabel('Frequency '); ylabel('dB'); title('Absolute threshold in quiet.');
-   axis([min(f) max(f) min(TH(:,ATH)) max(TH(:,ATH))]); %pause;
-  end
-% 
-% 
+TH(:,BARK)=13*atan(0.00076.*f)+3.5*atan((f./75*1000).^2);
 
 
 
-%f=f+TH(:,BARK);
- 
-% f=2*logspace(1,5,FFT_SIZE);
-% f=20;
-% CritBandWidth_start=13*atan(0.00076*f)+3.5*atan((f/7500.0)^2);
-% f=f+CritBandWidth_start/2;
-% for i= 1:FFT_SIZE
-% 
-% TH(i,FREQS)=f;
-% TH(i,ATH)=3.64*(f/1000)*(-0.8) - 6.5*exp((-0.6)*(f/1000-3.3)^2)+1e-3*((f/1000)^4);
-% if (TH(i,ATH) >=160) TH(i,ATH) = 160; end
-% if (TH(i,ATH) <=-20) TH(i,ATH) = -20; end
-% TH(i,BARK)=13*atan(0.00076*f)+3.5*atan((f/7500.0)^2);
-% TH(i,INDEX)=i;
-% f=f+TH(i,BARK);
-% end
-
-% TH = zeros(FFT_SIZE);
-% RBW_HZ = SAMPLE_RATE/(FFT_SIZE*4);
-% TH = (RBW_HZ : RBW_HZ : SAMPLE_RATE/2);
