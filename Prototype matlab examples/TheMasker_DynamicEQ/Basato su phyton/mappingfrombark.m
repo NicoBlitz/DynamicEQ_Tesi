@@ -7,6 +7,7 @@ function mT = mappingfrombark(mTbark,W_inv,nfft)
     %W_inv : inverse mapping matrix W_inv from matrix W for mapping back from bark scale
     %nfft: : number of subbands in fft
     %returns: mT, masking threshold in the linear scale
-    nfreqs=int(nfft/2);
-    mT = dot(mTbark, W_inv(:, 1:nfreqs).')
+    nfreqs=nfft/2;
+    A=W_inv.';
+    mT = mTbark*A(:,1:nfreqs);
 end

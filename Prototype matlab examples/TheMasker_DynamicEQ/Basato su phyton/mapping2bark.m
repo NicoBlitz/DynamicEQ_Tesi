@@ -5,7 +5,8 @@ function mXbark = mapping2bark(mX,W,nfft)
     %W: mapping matrix from function mapping2barkmat
     %nfft: : number of subbands in fft
     %returns: mXbark, magnitude mapped to the Bark scale
-    nfreqs=int(nfft/2);
+    nfreqs=nfft;
     %Here is the actual mapping, suming up powers and conv. back to Voltages:
-    mXbark = dot(abs(mX(nfreqs))^2.0, W(:, 1:nfreqs).'^(0.5)); %??
+    mXbark = sum(conj(abs(mX(1:nfreqs).^2.0)).*transpose(W(:, 1:nfreqs)).^(0.5)); %??
+%     plot(mXbark)
 end

@@ -1,4 +1,4 @@
-function [X, Delta]  = FFT_Analysis(Input, n)
+function [X, Delta]  = FFT_Analysis(Input, nfft,min_power)
 %X = FFT_Analysis(Input, n)
 %
 %   Compute the auditory spectrum using the Fast Fourier Transform.
@@ -42,27 +42,29 @@ function [X, Delta]  = FFT_Analysis(Input, n)
 %    postal box 56, CH-1211 Geneva 20, Telephone +41 22 749 0111, Telefax
 %    +4122 734 1079. Copyright remains with ISO.
 %-------------------------------------------------------------------------------
-Shared;
+% Shared;
 
 
 
 % Check input parameters
-% N=nfft*2;
+%  N=nfft*2;
 
 % Prepare the samples used for the FFT
 % Add zero padding if samples are missing
 %  s = Input(max(1, n):min(N, n+nfft-fftOverlap-1)); 
-s=Input() %(1:Input.length)
-s_mono=zeros(length(s)).';
-s=s(1)+s(2)
-%  s = s(:);
+s=Input(1:length(Input)); 
 
+
+%Convert to mono
+s=(s(1)+s(2))/2;
+%  s = s(:);
+% 
 % if (n - fftOverlap < 1)
 %    s = [zeros(fftOverlap - n + 1, 1); s];
-% end
+%  end
 % if (N < n - fftOverlap + nfft - 1)
 %    s = [s; zeros(n - fftOverlap + nfft - 1 - N, 1)];
-% end
+%  end
 
 % Prepare the Hanning window
 h = sqrt(8/3) * hanning(nfft, 'periodic');
@@ -77,12 +79,13 @@ h = sqrt(8/3) * hanning(nfft, 'periodic');
 
 
 
-X = max(20 *log10(abs(fft(s.*h))/ nfft), min_power);
+X = max(abs(fft(s.*h))/nfft, min_power);
 
       
 
        
 % Normalization to the reference sound pressure level of 96 dB
 Delta = 96;
-%- max(X);
+% Delta = 96 - max(X);
+% X = X +  Delta;
 

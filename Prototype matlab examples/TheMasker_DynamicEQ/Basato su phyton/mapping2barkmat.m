@@ -2,7 +2,7 @@
     function W = mapping2barkmat(fs, nfilts,nfft)
     %Constructing matrix W which has 1’s for each Bark subband, and 0’s else:
     %nfft=2048; nfilts=64;
-    nfreqs=nfft/2;
+    %nfreqs=nfft/2;
     maxbark=hz2bark(fs/2); %upper end of our Bark scale:22 Bark at 16 kHz
     nfreqs=nfft/2;
     step_barks = maxbark/(nfilts-1);

@@ -1,10 +1,8 @@
 
-%close all;
-%clear variables;
-%clc;
 function scopeHandles = TheMasker( ...
     genCode,plotResults,numTSteps)
-
+close all;
+bdclose all
 % MULTIBANDAUDIOCOMPRESSIONEXAMPLEAPP Initialize and execute audio
 % multiband dynamic range compression example. The results are displayed
 % using scopes. The function returns the handles to the scope and UI
@@ -29,9 +27,10 @@ function scopeHandles = TheMasker( ...
 
 % Copyright 2013-2017 The MathWorks, Inc.
 
-Shared;
-persistent reader readerSC player
 
+persistent reader readerSC ATQ_current player
+Shared;
+BufferSize=512;
 if isempty(reader)
    
     % audio I/O
@@ -43,7 +42,7 @@ if isempty(reader)
     readerSC = dsp.AudioFileReader('Filename','audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav', ...
        'PlayCount',Inf,'SamplesPerFrame',nfft*2).';
 
-    player = audioDeviceWriter('SampleRate',fs);
+    player = audioDeviceWriter('SampleRate',fs,'BufferSize',BufferSize);
 end
 
 
@@ -130,11 +129,9 @@ set(tuningUI,'Position',[57 221 571 902]);
 % PREPARE TO PLAY
 
 
+figure;
 
 
-
-% freq = TH(:,FREQS);
-% 
  if plotResults
 
     % Plot the compressed and uncompressed signals
@@ -145,13 +142,12 @@ set(tuningUI,'Position',[57 221 571 902]);
         "MeasurementChannel", 3, ...
         "FFTLengthSource","Property",...
         "FFTLength",nfft, ...
+         "FrequencyVector", transpose(frequencies), ...
+         "FrequencyVectorSource", "property", ...
          "Window","Hamming",...
         "YLimits",[-80 200],...
         "AxesScaling","Manual"...
         );
-%         "FrequencyVector", transpose(freq), ...
-%         "FrequencyVectorSource", "property", ...
-       
 
     
 
@@ -161,6 +157,8 @@ set(tuningUI,'Position',[57 221 571 902]);
     show(scope);
 
 end
+
+
 
 % PROCESS BLOCK
 
@@ -180,26 +178,27 @@ for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
         continue;
     end
     
-%     if genCode
-%         audio = HelperMultibandCompressionSim_mex(S,nfft,fs);
-%     else  
+
 
         audio = HelperMultibandCompressionSim(S,nfft,fs);
 
-%     end
- 
+ player(readerSC());
 
    if plotResults
+                    
 
-        maskThreshold = getMaskingThreshold(readerSC(),offset);
+        [X,Delta] = FFT_Analysis(readerSC(),nfft,min_power);
+        
+        maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current);
+        
+        plotIt(frequencies,maskThreshold,'log','dB','mX');
         %maskThreshold = maskThreshold - Delta;
-        upperMask = [freq, transpose(maskThreshold)];
+        upperMask = [frequencies.', maskThreshold.'];
         set(scope.SpectralMask,UpperMask=upperMask);
         
         % Visualize results
         scope(audio);
     end
-%     offset = offset + 1;
 
 end
 

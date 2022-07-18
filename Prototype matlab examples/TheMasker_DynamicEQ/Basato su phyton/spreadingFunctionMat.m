@@ -1,5 +1,5 @@
 
-function spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha)
+function spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha_exp)
      %Arguments: maxfreq: half the sampling frequency
      %nfilts: Number of subbands in the Bark domain, for instance 64
      fadB= 14.5+12; % Simultaneous masking for tones at Bark band 12
@@ -13,7 +13,7 @@ function spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha)
      %lower slope fbbdb attenuation per Bark, over maxbark Bark (full frequency range):
      spreadingfunctionBarkdB(nfilts+1:2*nfilts) = linspace(1,-maxbark*fbbdb,nfilts)-fadB;
      %Convert from dB to "voltage" and include a exponent
-     spreadingfunctionBarkVoltage=10.0.^(spreadingfunctionBarkdB/20.0*alpha);
+     spreadingfunctionBarkVoltage=10.0.^(spreadingfunctionBarkdB/20.0*alpha_exp);
      %Spreading functions for all bark scale bands in a matrix:
      spreadingfuncmatrix= zeros(nfilts,nfilts);
      for k =1:nfilts
