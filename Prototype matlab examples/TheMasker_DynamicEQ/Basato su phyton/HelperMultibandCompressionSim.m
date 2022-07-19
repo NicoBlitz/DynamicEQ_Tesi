@@ -1,4 +1,4 @@
-function audio = HelperMultibandCompressionSim(tuningUIStruct, nfft, fs)
+function audio = HelperMultibandCompressionSim(tuningUIStruct, nfft, fs, reader, masker)
 % HELPERMULTIBANDCOMPRESSIONSIM implements algorithm used in audio
 % multiband dynamic range compression example. This function instantiates,
 % initializes and steps through the System objects used in the algorithm.
@@ -19,7 +19,7 @@ function audio = HelperMultibandCompressionSim(tuningUIStruct, nfft, fs)
 % called inside the simulation loop. 
 %Common;
 % Shared;
-persistent reader readerSC drc1 drc2 drc3 drc4 masker crossover player 
+persistent drc1 drc2 drc3 drc4 crossover player 
 masker = 0.0;
 
 if isempty(reader)
@@ -114,32 +114,31 @@ if tuningUIStruct.Reset % reset System object
 end
 
 % Read audio from file
-x = reader();
-SC = readerSC();
+ SC = reader;
+
+% 
+% 
+% % Split into 4 bands
+% [sc10,sc20,sc30,sc40] = crossover(SC);
+% 
+% 
+% 
+% 
+% % Compress
+% a1 = drc1(a10);
+% a2 = drc2(a20);
+% a3 = drc3(a30);
+% a4 = drc4(a40);
+% 
+% %fprintf("%s \n",sc10);
+% 
+% sc1 = sc10-masker;
+% sc2 = sc20-masker;
+% sc3 = sc30-masker;
+% sc4 = sc40-masker;
 
 
-% Split into 4 bands
-[a10,a20,a30,a40] = crossover(x);
-[sc10,sc20,sc30,sc40] = crossover(SC);
-
-
-
-
-% Compress
-a1 = drc1(a10);
-a2 = drc2(a20);
-a3 = drc3(a30);
-a4 = drc4(a40);
-
-%fprintf("%s \n",sc10);
-
-sc1 = sc10-masker;
-sc2 = sc20-masker;
-sc3 = sc30-masker;
-sc4 = sc40-masker;
-
-
-%mask = SC - masker;
+% mask = SC - masker;
 
 
 

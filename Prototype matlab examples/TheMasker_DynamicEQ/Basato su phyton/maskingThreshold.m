@@ -10,9 +10,11 @@ function mask_fft_magn = maskingThreshold(mX, W, W_inv,fs,spreadingfuncmatrix,al
     %Result is the masking threshold in the linear domain:
     mT=mappingfrombark(mTbark,W_inv,nfft);
     
-    %Max between magnitude spectrum of a DFT of size 2048 and threshold in quiet:
     ATQ_bark_magn=10.0.^((ATQ_bark_db-60)/20);
     ATQ_fft=mappingfrombark(ATQ_bark_magn,W_inv,nfft);
+
+    %Max between magnitude spectrum of a FFT of size nfft and threshold in quiet:
+
     mask_fft_magn=max(mT, ATQ_fft);
 
     

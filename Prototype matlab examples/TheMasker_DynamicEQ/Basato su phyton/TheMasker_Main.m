@@ -1,5 +1,5 @@
 
-function scopeHandles = TheMasker( ...
+function scopeHandles = TheMasker_Main( ...
     genCode,plotResults,numTSteps)
 close all;
 bdclose all
@@ -27,20 +27,26 @@ bdclose all
 
 % Copyright 2013-2017 The MathWorks, Inc.
 
+%Creates readers and players from file as persistent
+%(persistent=existent inside this function only - maybe necessary for dsp.AudioFileReader structure) 
+persistent reader readerSC  player
 
-persistent reader readerSC ATQ_current player
+% Creates Absolute Threshold in quiet and other constant variables
 Shared;
-BufferSize=512;
-if isempty(reader)
-   
-    % audio I/O
-    reader = dsp.AudioFileReader('Filename','RockGuitar-16-44p1-stereo-72secs.wav', ...
-        'PlayCount',Inf,'SamplesPerFrame',nfft*2);
-%     readerSC = dsp.AudioFileReader('Filename','audio\Michael Bublé - Feeling Good [Official Music Video].wav', ...
-%        'PlayCount',Inf,'SamplesPerFrame',512);
+BufferSize=nfft*2;
 
-    readerSC = dsp.AudioFileReader('Filename','audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav', ...
-       'PlayCount',Inf,'SamplesPerFrame',nfft*2).';
+if isempty(reader)
+
+
+% Reads audio files (function reader() returns current FRAME)    
+    reader = dsp.AudioFileReader('Filename','RockGuitar-16-44p1-stereo-72secs.wav', ...
+        'PlayCount',Inf,'SamplesPerFrame',nfft);
+     readerSC = dsp.AudioFileReader('Filename','audio\Michael Bublé - Feeling Good [Official Music Video].wav', ...
+        'PlayCount',Inf,'SamplesPerFrame',nfft);
+
+% UNCOMMENT TO SWITCH TO "ALARM SOUND"     
+%     readerSC = dsp.AudioFileReader('Filename','audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav', ...
+%        'PlayCount',Inf,'SamplesPerFrame',nfft*2).';
 
     player = audioDeviceWriter('SampleRate',fs,'BufferSize',BufferSize);
 end
@@ -49,7 +55,7 @@ end
 
 
 
-% Default values for inputs
+% Default values for inputs of TheMasker_Main
 if nargin < 3
     numTSteps = Inf; % Run until user stops simulation. 
 end
@@ -65,6 +71,7 @@ end
 
 % Create tuning UI 
 param = struct([]);
+%Params from "Multiband compression example app"
 param(1).Name = 'Band 1 Compression Factor';
 param(1).InitialValue = 5;
 param(1).Limits =  [1, 100];
@@ -114,8 +121,7 @@ param(16).Name = 'Band 4 Release Time (s)';
 param(16).InitialValue = 0.050;
 param(16).Limits = [0, 4];
 
-%masker params
-
+%Other params (masker?)
 param(17).Name = 'Range(k)';
 param(17).InitialValue = 0.0;
 param(17).Limits = [0, 80];
@@ -128,17 +134,15 @@ set(tuningUI,'Position',[57 221 571 902]);
 
 % PREPARE TO PLAY
 
-
+%Create 1 matlab figure
 figure;
 
+    % Create the spectrum (Log_magn)
+%     mask = SpectralMaskSpecification("EnableMasks")
 
- if plotResults
-
-    % Plot the compressed and uncompressed signals
-   
-    
     scope = dsp.SpectrumAnalyzer("SampleRate", fs, "PlotAsTwoSidedSpectrum", false,...
         "FrequencyScale","Log", "SpectrumType", "Power density", ...
+        "SpectrumUnits", "dBFS",...
         "MeasurementChannel", 3, ...
         "FFTLengthSource","Property",...
         "FFTLength",nfft, ...
@@ -148,21 +152,23 @@ figure;
         "YLimits",[-80 200],...
         "AxesScaling","Manual"...
         );
+    set(scope.SpectralMask,EnabledMasks='upper');
 
-    
+%         "SpectralMask", mask...
 
-    scope.SpectralMask.EnabledMasks = "upper";
+
+%     scope.SpectralMask.EnabledMasks("upper");
     
     
     show(scope);
 
-end
+
 
 
 
 % PROCESS BLOCK
 
-% Execute algorithm
+% Execute algorithm from first to last sample of the file with a step of nfft*2 
 
 for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
 
@@ -180,7 +186,7 @@ for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
     
 
 
-        audio = HelperMultibandCompressionSim(S,nfft,fs);
+        
 
  player(readerSC());
 
@@ -197,9 +203,11 @@ for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
         set(scope.SpectralMask,UpperMask=upperMask);
         
         % Visualize results
-        scope(audio);
+        scope(readerSC());
     end
 
+
+    audio = HelperMultibandCompressionSim(S,nfft,fs,readerSC());
 end
 
 % Clean up
@@ -215,4 +223,3 @@ clear HelperMultibandCompressionSim_mex
 clear HelperUnpackUIData
  
 
-end
