@@ -33,22 +33,22 @@ persistent reader readerSC  player
 
 % Creates Absolute Threshold in quiet and other constant variables
 Shared;
-BufferSize=nfft*2;
+% BufferSize=nfft*2;
 
 if isempty(reader)
 
 
 % Reads audio files (function reader() returns current FRAME)    
     reader = dsp.AudioFileReader('Filename','RockGuitar-16-44p1-stereo-72secs.wav', ...
-        'PlayCount',Inf,'SamplesPerFrame',nfft);
+        'PlayCount',Inf,'SamplesPerFrame',buffersize);
      readerSC = dsp.AudioFileReader('Filename','audio\Michael Bublé - Feeling Good [Official Music Video].wav', ...
-        'PlayCount',Inf,'SamplesPerFrame',nfft);
+        'PlayCount',Inf,'SamplesPerFrame',buffersize);
 
 % UNCOMMENT TO SWITCH TO "ALARM SOUND"     
 %     readerSC = dsp.AudioFileReader('Filename','audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav', ...
 %        'PlayCount',Inf,'SamplesPerFrame',nfft*2).';
 
-    player = audioDeviceWriter('SampleRate',fs,'BufferSize',BufferSize);
+    player = audioDeviceWriter('SampleRate',fs,'BufferSize',buffersize);
 end
 
 
@@ -149,13 +149,12 @@ figure;
          "FrequencyVector", transpose(frequencies), ...
          "FrequencyVectorSource", "property", ...
          "Window","Hamming",...
-        "YLimits",[-80 200],...
         "AxesScaling","Manual"...
         );
     set(scope.SpectralMask,EnabledMasks='upper');
 
 %         "SpectralMask", mask...
-
+%         "YLimits",[-80 200],...
 
 %     scope.SpectralMask.EnabledMasks("upper");
     
@@ -185,29 +184,29 @@ for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
     end
     
 
+samples=readerSC()
+       
 
-        
-
- player(readerSC());
+ player(samples);
 
    if plotResults
                     
 
-        [X,Delta] = FFT_Analysis(readerSC(),nfft,min_power);
+        [X,Delta] = FFT_Analysis(samples,nfft,min_power);
         
-        maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current);
+        maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
         
-        plotIt(frequencies,maskThreshold,'log','dB','mX');
+%         plotIt(frequencies,maskThreshold,'log','dB','mX');
         %maskThreshold = maskThreshold - Delta;
         upperMask = [frequencies.', maskThreshold.'];
         set(scope.SpectralMask,UpperMask=upperMask);
         
         % Visualize results
-        scope(readerSC());
+        scope(samples);
     end
 
 
-    audio = HelperMultibandCompressionSim(S,nfft,fs,readerSC());
+    audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
 end
 
 % Clean up

@@ -1,23 +1,26 @@
 
 fs=44100;  % sampling frequency of audio signal
 alpha_exp=0.8;  %Exponent for non-linear superposition of spreading functions
-nfilts=32;  %number of subbands in the bark domain
-nfft=512;  %number of fft subbands
+buffersize=1024;
+nfft=buffersize/2;  %number of fft subbands
+nfilts=nfft;  %number of subbands in the bark domain
 fftshift=384;
 fftoverlap=(nfft-fftshift)/2;
-buffersize=nfft;
+
 maxfreq=fs/2;
 minfreq=20;
 min_power=-2000;
-frequencies=linspace(minfreq,maxfreq,nfft/2);
-maxbark=hz2bark(maxfreq);
-minbark=hz2bark(minfreq);
-step_bark = maxbark/(nfilts-1);
-barks=(1:nfilts)*step_bark;
+
+% frequencies=linspace(minfreq,maxfreq,nfft/2);
+maxbark=hz2bark(maxfreq)
+minbark=hz2bark(minfreq)
+step_bark = (maxbark-minbark)/(nfilts-1)
+barks=minbark:step_bark:maxbark
+frequencies=bark2hz(barks)
 
 W = mapping2barkmat(fs,nfilts,nfft);
 spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha_exp);
-ATQ_current=ATQ(barks);
+ATQ_current=ATQ(frequencies);
 W_inv = mappingfrombarkmat(W,nfft);
 
 % function W = mapping2barkmat(fs, nfilts,nfft)

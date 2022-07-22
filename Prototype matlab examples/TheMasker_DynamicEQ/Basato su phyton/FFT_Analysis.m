@@ -56,7 +56,7 @@ s=Input(1:length(Input));
 
 
 %Convert to mono
-s=(s(1)+s(2))/2;
+s=(s(1)+s(2));
 %  s = s(:);
 % 
 % if (n - fftOverlap < 1)
@@ -79,10 +79,12 @@ h = sqrt(8/3) * hanning(nfft, 'periodic');
 
 
 
-X = max(abs(fft(s.*h))/nfft, min_power);
+X = abs(fft(s.*h))/nfft;
 
-      
+% P1 = X(1:nfft/2+1);
+% P1(2:end-1) = 2*P1(2:end-1);     
 
+% X =max(X,min_power);
        
 % Normalization to the reference sound pressure level of 96 dB
 Delta = 96;

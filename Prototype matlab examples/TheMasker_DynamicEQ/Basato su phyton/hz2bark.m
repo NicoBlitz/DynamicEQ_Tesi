@@ -5,5 +5,5 @@ function Brk = hz2bark(f)
     %     Returns  :
     %     Brk  : (ndarray)    Array containing Bark scaled values.
     %     
-    Brk = 6.*asinh(f./600)                                                
+    Brk = 6.*asinh(f./600) ;                                               
 end
