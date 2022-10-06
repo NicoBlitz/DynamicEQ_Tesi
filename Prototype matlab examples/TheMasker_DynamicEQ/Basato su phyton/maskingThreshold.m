@@ -4,7 +4,7 @@ function MT_OUT = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,
     %Returns: masking threshold (as voltage) for its first 1025 subbands
     %Map magnitude spectrum to 1/3 Bark bands:
     
-    plotIt((1:length(X)),X,'uniform', 'magnitude')
+    plotIt((1:length(X)),X,'uniform', 'magnitude');
     Xbark=mapping2bark(X,W, nfft);
     %Compute the masking threshold in the Bark domain:
 %     plotIt(Xbark,'barks','dB','X in barks');

@@ -11,6 +11,8 @@ maxfreq=fs/2;
 minfreq=20;
 min_power=-2000;
 
+
+
 % frequencies=linspace(minfreq,maxfreq,nfft/2);
 maxbark=hz2bark(maxfreq)
 minbark=hz2bark(minfreq)

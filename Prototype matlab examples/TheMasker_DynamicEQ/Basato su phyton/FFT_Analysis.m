@@ -56,7 +56,7 @@ s=Input(1:length(Input));
 
 
 %Convert to mono
-s=(s(1)+s(2));
+s=s(1)+s(2)/2;
 %  s = s(:);
 % 
 % if (n - fftOverlap < 1)
