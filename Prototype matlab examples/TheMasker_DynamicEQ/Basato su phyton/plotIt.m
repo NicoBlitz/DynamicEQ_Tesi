@@ -14,10 +14,10 @@ end
 
 switch X_Mode
     case 'log'
-       semilogx(xArray, yArray, 'ko');
+       loglog(xArray, yArray);
        xlabel(X_Mode); ylabel(Y_Mode); %title('',title,' (',xAxis,' per ',yAxis,'');
        axis([min(xArray)-1 max(xArray)+1 min(yArray)-1 max(yArray)+1]); %pause;
-
+       
     case 'barks'
        plot(xArray, yArray, 'ko');
        xlabel('barks'); ylabel(Y_Mode); 

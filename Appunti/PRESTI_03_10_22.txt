@@ -1,0 +1,49 @@
+
+
+VU meter all'ingresso (presumiamo che il segnale sia normalizzato)
+O una finestra che mostri RMS
+sicuramente il calcolo in RMS
+
+processore di dinamica: prendere il valore in dB per trasformarlo in valore lineare 
+(quello che usa Juce) 
+all'uscita dell'analisi psicoacustica quindi forse è meglio non convertire da dB ad amplitude.
+
+--> convertiamo in dB
+
+comp: 0 --> non fa niente
+comp: 1 --> porto il segnale sulla soglia di mascheramento
+comp: 2 --> porto il segnale SOTTO la soglia di mascheramento (SNR a favore della soglia di mascheramento)
+
+Decidere un peso dela ATq --> in modo da non fare un gate esagerato
+vedi disegno di presti
+scegliere valori bassi tipo -96 o -144
+comunque mi piace, perché andiamo a ripulire frequenze inutili (non era questa l'idea?)
+
+idea:
+EQ dinamico con frequenze fisse (es 32 bande) 
+non sono i terzi di ottava, ma i centri di ottava della scala in bark (da convertire poi in hertz)
+
+
+dobbiamo essere indipendenti dalla buffer size
+sarebbe facile se non ci fosse un overlapping
+
+con inverse FFT
+se invece facciamo solo una forward FFT allora ho meno problemi
+
+vedere tutorial della rappresentazione dello spettro su juce (pagina di juce o pagina del corso)
+
+32 passabanda (computazione bassa memoria alta) o 32 peakfilter(computazione alta memoria bassa)
+statevariablefilter o topology preserving tranform filter 
+--> filtri fatti apposta per modulare filtri audio
+
+quando i peakfilter sono a 0 non c'è distorzione di fase, a differenza del passabanda
+comunque la distorisione di fase ci interessa meno
+
+noi lavoriamo in float --> valori tra -1 e 1
+
+usare funzioni di presti e file matlab
+(quello corrisponde alla IIR filter di juce)
+
+DOPO LA SPREADING FUNCTION riduciamo già tutto a 32 campioni (=32 barks)
+
+

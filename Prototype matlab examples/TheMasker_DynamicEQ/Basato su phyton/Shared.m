@@ -3,11 +3,11 @@ fs=44100;  % sampling frequency of audio signal
 alpha_exp=0.8;  %Exponent for non-linear superposition of spreading functions
 buffersize=1024;
 nfft=buffersize/2;  %number of fft subbands
-nfilts=nfft;  %number of subbands in the bark domain
+nfilts=512;  %number of subbands in the bark domain
 fftshift=384;
 fftoverlap=(nfft-fftshift)/2;
 
-maxfreq=fs/2;
+maxfreq=22000;
 minfreq=20;
 min_power=-2000;
 

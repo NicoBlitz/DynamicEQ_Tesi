@@ -5,6 +5,8 @@ function MT_OUT = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,
     %Map magnitude spectrum to 1/3 Bark bands:
     
     plotIt((1:length(X)),X,'uniform', 'magnitude');
+    plotIt(frequencies,ATQ_bark_db,'log', 'log');
+
     Xbark=mapping2bark(X,W, nfft);
     %Compute the masking threshold in the Bark domain:
 %     plotIt(Xbark,'barks','dB','X in barks');
@@ -17,7 +19,7 @@ function MT_OUT = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,
     mT=mappingfrombark(mTbark,W_inv,nfft);
     
 
-    %ATQ processing from bark/db to FFT/magn 
+    %ATQ processing from bark/db to FFT/magn
     ATQ_bark_magn=10.0.^((ATQ_bark_db-60)/20);
     ATQ_fft=mappingfrombark(ATQ_bark_magn,W_inv,nfft);
     

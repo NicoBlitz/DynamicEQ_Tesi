@@ -126,6 +126,11 @@ param(17).Name = 'Range(k)';
 param(17).InitialValue = 0.0;
 param(17).Limits = [0, 80];
 
+param(18).Name = 'ATQ influence';
+param(18).InitialValue = 0.0;
+param(18).Limits = [0, 1];
+
+
 tuningUI = HelperCreateParamTuningUI(param, ...
     'Multiband Dynamic Compression Example');
 
