@@ -189,7 +189,7 @@ for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
     end
     
 
-samples=readerSC()
+ samples=readerSC()
        
 
  player(samples);
@@ -201,7 +201,7 @@ samples=readerSC()
         
         maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
         
-%         plotIt(frequencies,maskThreshold,'log','dB','mX');
+%       plotIt(frequencies,maskThreshold,'log','dB','mX');
         %maskThreshold = maskThreshold - Delta;
         upperMask = [frequencies.', maskThreshold.'];
         set(scope.SpectralMask,UpperMask=upperMask);
