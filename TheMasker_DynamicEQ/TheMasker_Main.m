@@ -1,37 +1,25 @@
 
-function scopeHandles = TheMasker_Main()
 close all;
 bdclose all
-
-%Creates readers and players from file as persistent
-%(persistent=existent inside this function only - maybe necessary for dsp.AudioFileReader structure) 
-persistent reader readerSC  player
-
-% PREPARE TO PLAY
 
 % Creates Absolute Threshold in quiet and other constant variables
 Shared;
 
-if isempty(reader)
+% Read entire files
+[input,fs] = audioread("audio\Michael Buble edit.wav");
+[scInput,fs] = audioread("audio\Michael Buble edit.wav");
 
 
-% Reads audio files (function reader() returns current block)    
-     reader = dsp.AudioFileReader('Filename','RockGuitar-16-44p1-stereo-72secs.wav', ...
-        'PlayCount',Inf,'SamplesPerFrame',buffersize);
-     readerSC = dsp.AudioFileReader('Filename','audio\Michael Bublé - Feeling Good [Official Music Video].wav', ...
-        'PlayCount',Inf,'SamplesPerFrame',buffersize);
-
-% UNCOMMENT TO SWITCH TO "ALARM SOUND"     
-%    readerSC = dsp.AudioFileReader('Filename','audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav', ...
-%       'PlayCount',Inf,'SamplesPerFrame',nfft*2).';
-
-    player = audioDeviceWriter('SampleRate',fs,'BufferSize',buffersize);
-
-end
+% PREPARE TO PLAY
 
 
 % Create tuning UI 
 param = struct([]);
+
+UIinGain = 0.8;
+UIscGain = 0.8;
+
+
 %Params from "Multiband compression example app"
 param(1).Name = 'Band 1 Compression Factor';
 param(1).InitialValue = 5;
@@ -98,7 +86,6 @@ tuningUI = HelperCreateParamTuningUI(param, ...
 set(tuningUI,'Position',[57 221 571 902]);
 
 
-
 % Create 1 matlab figure
 figure;
 
@@ -126,61 +113,60 @@ figure;
 %     show(scope);
 
 
-
+S = HelperUnpackUIData(tuningUI);
 
 
 % PROCESS BLOCK
 
 % Execute algorithm from first to last sample of the file with a step of nfft*2 
 
-for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
+for offset = 1:buffersize:length(input)-buffersize
 
     
-    S = HelperUnpackUIData(tuningUI);
+blockSC = scInput(offset:offset+buffersize,:);   
+blockIN = input(offset:offset+buffersize,:);   
+
+blockIN_Gain = blockIN * UIinGain;
+blockSC_Gain = blockSC * UIscGain;
+
+% Calculate block's threshold depending on our psychoacoustic model  
+% nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
+threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fttoverlap)
+
+% Signal processing depending on the threshold just calculated
+% wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, nfilts);
+
+                
+    %[X,Delta] = FFT_Analysis(input,nfft,min_power);
     
-  
+    %maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
+    
+    %plotIt(frequencies,maskThreshold,'log','dB','mX');
 
-    if S.Stop     % If "Stop Simulation" button is pressed
-        break;
-    end
-    if S.Pause
-        continue;
-    end
+    %maskThreshold = maskThreshold - Delta;
+
+    %upperMask = [frequencies.', maskThreshold.'];
+
+    %set(scope.SpectralMask,UpperMask=upperMask);
+    
+    % Visualize results
     
 
- samples=readerSC();
 
- player(samples);
+%     audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
+%     scope(input);
 
-   if plotResults
-                    
-        %[X,Delta] = FFT_Analysis(samples,nfft,min_power);
-        
-        %maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
-        
-        %plotIt(frequencies,maskThreshold,'log','dB','mX');
-
-        %maskThreshold = maskThreshold - Delta;
-
-        %upperMask = [frequencies.', maskThreshold.'];
-
-        %set(scope.SpectralMask,UpperMask=upperMask);
-        
-        % Visualize results
-        scope(samples);
-    end
-
-
-    %audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
 end
 
+% Play file
+soundsc(input,fs)
+
+
 % Clean up
-    if plotResults
-        release(scope);
-        scopeHandles.scope = scope;
-    else
-        scopeHandles.scope = [];
-    end
+%     
+% release(scope);
+% scopeHandles.scope = scope;
+   
 close(tuningUI)
 clear HelperMultibandCompressionSim
 clear HelperMultibandCompressionSim_mex
