@@ -14,11 +14,19 @@ min_power=-2000;
 
 
 % frequencies=linspace(minfreq,maxfreq,nfft/2);
-maxbark=hz2bark(maxfreq)
-minbark=hz2bark(minfreq)
-step_bark = (maxbark-minbark)/(nfilts-1)
-barks=minbark:step_bark:maxbark
-frequencies=bark2hz(barks)
+maxbark=hz2bark(maxfreq);
+minbark=hz2bark(minfreq);
+step_bark = (maxbark-minbark)/(nfilts-1);
+barks=minbark:step_bark:maxbark;
+frequencies=bark2hz(barks);
+bandWidthFreq=zeros(length(frequencies));
+for i=1:length(frequencies)
+    if(i==length(frequencies)) 
+    bandWidthFreq(i)=0;
+    else
+    bandWidthFreq(i)=frequencies(i+1)-frequencies(i);
+    end
+end
 
 W = mapping2barkmat(fs,nfilts,nfft);
 spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha_exp);

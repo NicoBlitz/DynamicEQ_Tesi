@@ -9,16 +9,13 @@ Shared;
 [input,fs] = audioread("audio\Michael Buble edit.wav");
 [scInput,fs] = audioread("audio\Michael Buble edit.wav");
 
-
 % PREPARE TO PLAY
-
 
 % Create tuning UI 
 param = struct([]);
 
 UIinGain = 0.8;
 UIscGain = 0.8;
-
 
 %Params from "Multiband compression example app"
 param(1).Name = 'Band 1 Compression Factor';
@@ -123,15 +120,15 @@ S = HelperUnpackUIData(tuningUI);
 for offset = 1:buffersize:length(input)-buffersize
 
     
-blockSC = scInput(offset:offset+buffersize,:);   
-blockIN = input(offset:offset+buffersize,:);   
+blockSC = scInput(offset:offset+buffersize-1,:);
+blockIN = input(offset:offset+buffersize-1,:);   
 
 blockIN_Gain = blockIN * UIinGain;
 blockSC_Gain = blockSC * UIscGain;
 
 % Calculate block's threshold depending on our psychoacoustic model  
 % nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
-threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fttoverlap)
+threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
 
 % Signal processing depending on the threshold just calculated
 % wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, nfilts);
