@@ -189,29 +189,30 @@ for offset = reader.ReadRange(1):reader.SamplesPerFrame:reader.ReadRange(2)
     end
     
 
- samples=readerSC()
-       
+ samples=readerSC();
 
  player(samples);
 
    if plotResults
                     
+        %[X,Delta] = FFT_Analysis(samples,nfft,min_power);
+        
+        %maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
+        
+        %plotIt(frequencies,maskThreshold,'log','dB','mX');
 
-        [X,Delta] = FFT_Analysis(samples,nfft,min_power);
-        
-        maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
-        
-%       plotIt(frequencies,maskThreshold,'log','dB','mX');
         %maskThreshold = maskThreshold - Delta;
-        upperMask = [frequencies.', maskThreshold.'];
-        set(scope.SpectralMask,UpperMask=upperMask);
+
+        %upperMask = [frequencies.', maskThreshold.'];
+
+        %set(scope.SpectralMask,UpperMask=upperMask);
         
         % Visualize results
         scope(samples);
     end
 
 
-    audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
+    %audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
 end
 
 % Clean up
