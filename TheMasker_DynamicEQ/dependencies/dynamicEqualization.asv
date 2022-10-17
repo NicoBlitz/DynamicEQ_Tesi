@@ -5,15 +5,13 @@ function wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfil
     
     %converting from frquency to Barks
     %Based on https://stackoverflow.com/questions/10754549/fft-bin-width-clarification
-    bin_width = fs / nfft
-    %invece i valori di bins dove li abbiamo visti insieme?
+    bin_width = fs / nfft;
+    %  b invece i valori di bins dove li abbiamo visti insieme?
     %sono giusti i valori da 0 a 256? o devono essere 512?
     bins=(0:bin_width:fs/2-1);
     
-    %problema seccondo me: 
-    %in getfbank -> bw: badwidth of each filter (expressed in 'scale', default: 'auto')
-    %quindi non sta andando bene bin_width
-    wetSignalBark = getfbank(bins, bin_width, 'bark');
+    %check thiiiiissssssss
+    barkFilters = getfbank(bins, 'auto', 'bark', @triang, 32);
 
     %decimate (con barks non stiamo già decimando?)
 
