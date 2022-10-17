@@ -19,10 +19,10 @@ UIscGain = 0.8;
 
 param = SetUIParams(param);
 
-tuningUI = HelperCreateParamTuningUI(param, ...
-    'Multiband Dynamic Compression Example');
+%tuningUI = HelperCreateParamTuningUI(param, ...
+%   'Multiband Dynamic Compression Example');
 
-set(tuningUI,'Position',[57 221 571 902]);
+%set(tuningUI,'Position',[57 221 571 902]);
 
 
 % Create 1 matlab figure
@@ -72,8 +72,10 @@ blockSC_Gain = blockSC * UIscGain;
 % nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
 threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
 
+%threshold = getDummyThreshold();
+
 % Signal processing depending on the threshold just calculated
-wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfilts);
+wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfilts, frequencies);
 
                 
     %[X,Delta] = FFT_Analysis(input,nfft,min_power);
@@ -106,7 +108,7 @@ soundsc(input,fs)
 % release(scope);
 % scopeHandles.scope = scope;
    
-close(tuningUI)
+%close(tuningUI)
 clear HelperMultibandCompressionSim
 clear HelperMultibandCompressionSim_mex
 clear HelperUnpackUIData

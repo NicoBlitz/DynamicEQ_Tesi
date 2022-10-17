@@ -3,7 +3,7 @@ fs=44100;  % sampling frequency of audio signal
 alpha_exp=0.8;  %Exponent for non-linear superposition of spreading functions
 buffersize=1024;
 nfft=buffersize/2;  %number of fft subbands
-nfilts=512;  %number of subbands in the bark domain
+nfilts=32;  %number of subbands in the bark domain <3
 fftshift=384;
 fftoverlap=(nfft-fftshift)/2;
 
@@ -16,7 +16,7 @@ min_power=-2000;
 % frequencies=linspace(minfreq,maxfreq,nfft/2);
 maxbark=hz2bark(maxfreq);
 minbark=hz2bark(minfreq);
-step_bark = (maxbark-minbark)/(nfilts-1);
+step_bark = (maxbark-minbark)/(nfft-1);
 barks=minbark:step_bark:maxbark;
 frequencies=bark2hz(barks);
 bandWidthFreq=zeros(length(frequencies));
@@ -47,5 +47,12 @@ W_inv = mappingfrombarkmat(W,nfft);
 %             W(i,0:floorDiv(nfft,2)+1) = round(binbarks/step_barks)== i; %??
 %         end
 %     end
+
+
+%scale from frquency to Barks
+%Based on https://stackoverflow.com/questions/10754549/fft-bin-width-clarification
+%512 bins
+bin_width = fs / 2 / nfft; 
+bins=(0:bin_width:fs/2-1);
 
 
