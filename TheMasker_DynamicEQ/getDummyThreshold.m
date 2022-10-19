@@ -1,3 +1,0 @@
-function threshold = getDummyThreshold()
-
-end

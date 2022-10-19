@@ -72,7 +72,8 @@ blockSC_Gain = blockSC * UIscGain;
 % nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
 threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
 
-%threshold = getDummyThreshold();
+%dummy threshold, to be delete
+threshold = getDummyThreshold(nfilts);
 
 % Signal processing depending on the threshold just calculated
 wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfilts, frequencies);
