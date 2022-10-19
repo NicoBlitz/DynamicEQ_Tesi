@@ -1,6 +1,10 @@
 
 close all;
-%bdclose all
+%bdclose all;
+
+% Add audio and dependencies folders to path
+folder = fileparts(which(mfilename)); 
+addpath(genpath(folder));
 
 % Creates Absolute Threshold in quiet and other constant variables
 Shared;
@@ -11,23 +15,27 @@ Shared;
 
 % PREPARE TO PLAY
 
-% Create tuning UI 
-param = struct([]);
+% signals initialization
+duration=length(input);
+sample=linspace(1,duration,duration);
+threshold = zeros(nfft,1);
+thresholdBuffer = zeros(nfft,duration);
+wetSignal = zeros(duration,2);
 
+% parameters initialization
 UIinGain = 0.8;
 UIscGain = 0.8;
 
+UIoutGain = 1;
+
+% UI initialization
+param = struct([]);
 param = SetUIParams(param);
 
 tuningUI = HelperCreateParamTuningUI(param, ...
-    'Multiband Dynamic Compression Example');
+    'TheMasker');
 
 set(tuningUI,'Position',[57 221 571 902]);
-
-
-% Create 1 matlab figure
-%figure;
-
 
 % Create the spectrum (Log_magn)
 %   mask = SpectralMaskSpecification("EnableMasks")
@@ -56,49 +64,72 @@ set(tuningUI,'Position',[57 221 571 902]);
 
 %---------------------------------------------------------------------------------
 % PROCESS BLOCK 
-
 % Execute algorithm from first to last sample of the file with a step of nfft*2 
 
-for offset = 1:buffersize:length(input)-buffersize
+blockNumber=0;
 
+for offset = 1:buffersize:duration-buffersize
     
-blockSC = scInput(offset:offset+buffersize-1,:);
-blockIN = input(offset:offset+buffersize-1,:);   
+    blockNumber=blockNumber+1;
+    blockEnd = offset+buffersize-1;
 
-blockIN_Gain = blockIN * UIinGain;
-blockSC_Gain = blockSC * UIscGain;
+    blockSC = scInput(offset:blockEnd,:);
+    blockIN = input(offset:blockEnd,:);   
+    
+    blockIN_Gain = blockIN(:,:) * UIinGain;
+    blockSC_Gain = blockSC(:,:) * UIscGain;
+    
+    % Calculate block's threshold depending on our psychoacoustic model  
+    % nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
+    threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
+    
+    
+    thresholdBuffer(:,blockNumber)=threshold;
+    
 
-% Calculate block's threshold depending on our psychoacoustic model  
-% nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
-threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
-
-% Signal processing depending on the threshold just calculated
-wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfilts);
-
+    % Signal processing depending on the threshold just calculated
+    wetBlock = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfilts) * UIoutGain;
+    
+    % Signal reconstruction (current block concatenation)
+    wetSignal(offset:blockEnd,1)=blockIN_Gain(:,1);
+    wetSignal(offset:blockEnd,2)=blockIN_Gain(:,2);
+    
                 
-    %[X,Delta] = FFT_Analysis(input,nfft,min_power);
+        %[X,Delta] = FFT_Analysis(input,nfft,min_power);
+        
+        %maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
+        
+        %plotIt(frequencies,maskThreshold,'log','dB','mX');
     
-    %maskThreshold = maskingThreshold(X, W, W_inv,fs,spreadingfuncmatrix,alpha_exp,nfft,ATQ_current,barks,frequencies);
+        %upperMask = [frequencies.', maskThreshold.'];
     
-    %plotIt(frequencies,maskThreshold,'log','dB','mX');
-
-    %maskThreshold = maskThreshold - Delta;
-
-    %upperMask = [frequencies.', maskThreshold.'];
-
-    %set(scope.SpectralMask,UpperMask=upperMask);
+        %set(scope.SpectralMask,UpperMask=upperMask);
+        
+        % Visualize results
+        
     
-    % Visualize results
     
-
-
-%     audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
-%     scope(input);
+        % audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
+        % scope(input);
 
 end
 
+% Plot something
+figure;
+%ax3 = plot(3,1,3);
+pspectrum(wetSignal(:,1),fs,'spectrogram','OverlapPercent',0, ...
+    'Leakage',1,'MinThreshold',-60, 'TimeResolution', 10e-3, 'FrequencyLimits',[20 20000]);
+%linkaxes(ax1,ax2,ax3,'x');
+
+
+% view(-45,65)
+% colormap bone
+
+plotIt(sample, frequencies, thresholdBuffer); %Complex values are not supported.
+
+
 % Play file
-soundsc(input,fs)
+sound(wetSignal,fs);
 
 
 % Clean up
