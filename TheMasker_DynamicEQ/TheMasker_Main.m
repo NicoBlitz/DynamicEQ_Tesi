@@ -70,7 +70,7 @@ blockSC_Gain = blockSC * UIscGain;
 
 % Calculate block's threshold depending on our psychoacoustic model  
 % nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
-threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
+%threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
 
 %dummy threshold, to be delete
 threshold = getDummyThreshold(nfilts);

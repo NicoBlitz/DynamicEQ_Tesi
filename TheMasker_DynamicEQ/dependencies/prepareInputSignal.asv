@@ -7,8 +7,9 @@ function filteredIN_Signal = prepareInputSignal(blockIN_Gain, nfft, fs, nfilts, 
     wetSignalFD = getFD(monoSignal, fs);
 
     %convert amp to db
-    %TODO: handle -inf case -> gives Nan on following operations 
-    wetSignalFD = amp2db(wetSignalFD);
+    wetSignalFD = amp2db(wetSignalFD)
+    %handle -inf case -> gives Nan on following operations 
+    wetSignalFD = floor()
 
     %get filter banks (to bark, 32 val)
     filterBanks = getfbank(frequencies, 'auto', 'bark', @triang, nfilts);
