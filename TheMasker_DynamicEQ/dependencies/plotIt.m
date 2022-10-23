@@ -32,7 +32,7 @@ function plotIt(xArray,yArray, extra)
             %axis([min(xArray)-1 max(xArray)+1 min(yArray) max(yArray)]); 
 
     elseif dim == 3 && not(isa(extra,'string'))
-            heatmap(xArray, yArray, extra);
+            heatmap(extra, xArray, yArray);
             %h.xlabel('undefined'); 
             %h.Aaxis([min(xArray)-1 max(xArray)+1 min(yArray)-1 max(yArray)+1]); 
     

@@ -13,13 +13,27 @@ Shared;
 [input,fs] = audioread("audio\Michael Buble edit.wav");
 [scInput,fs] = audioread("audio\Michael Buble edit.wav");
 
+
+endSample=20000; %take just first x samples
+endSample=min(endSample,length(input));
+
+% input signals truncation at "endSample"th sample
+% (if "endSample" is greater than the original duration (in samples),
+% "endSample" will be overrided with original duration);
+input=input(1:endSample,:);
+scInput=scInput(1:endSample,:);
+
 % PREPARE TO PLAY
 
 % signals initialization
 duration=length(input);
+totBlocks=ceil(duration/buffersize)-1;
+
 sample=linspace(1,duration,duration);
+blocks=linspace(1,totBlocks,totBlocks);
+
 threshold = zeros(nfft,1);
-thresholdBuffer = zeros(nfft,duration);
+thresholdBuffer = zeros(nfilts,totBlocks);
 wetSignal = zeros(duration,2);
 
 % parameters initialization
@@ -66,11 +80,11 @@ set(tuningUI,'Position',[57 221 571 902]);
 % PROCESS BLOCK 
 % Execute algorithm from first to last sample of the file with a step of nfft*2 
 
-blockNumber=0;
+blockNumber=1;
 
 for offset = 1:buffersize:duration-buffersize
     
-    blockNumber=blockNumber+1;
+    
     blockEnd = offset+buffersize-1;
 
     blockSC = scInput(offset:blockEnd,:);
@@ -81,11 +95,11 @@ for offset = 1:buffersize:duration-buffersize
     
     % Calculate block's threshold depending on our psychoacoustic model  
     % nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
-    threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap);
+    threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap, fbank);
     
     
     thresholdBuffer(:,blockNumber)=threshold;
-    
+
 
     % Signal processing depending on the threshold just calculated
     wetBlock = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfilts) * UIoutGain;
@@ -112,20 +126,22 @@ for offset = 1:buffersize:duration-buffersize
         % audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
         % scope(input);
 
+        blockNumber=blockNumber+1;
+
 end
 
 % Plot something
 figure;
-%ax3 = plot(3,1,3);
+% ax3 = plot(3,1,3);
 pspectrum(wetSignal(:,1),fs,'spectrogram','OverlapPercent',0, ...
     'Leakage',1,'MinThreshold',-60, 'TimeResolution', 10e-3, 'FrequencyLimits',[20 20000]);
-%linkaxes(ax1,ax2,ax3,'x');
+% linkaxes(ax1,ax2,ax3,'x');
 
 
 % view(-45,65)
 % colormap bone
 
-plotIt(sample, frequencies, thresholdBuffer); %Complex values are not supported.
+heatmap(thresholdBuffer); %Complex values are not supported.
 
 
 % Play file

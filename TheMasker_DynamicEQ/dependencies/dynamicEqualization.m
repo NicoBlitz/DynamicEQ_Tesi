@@ -11,7 +11,7 @@ function wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfil
     bins=(0:bin_width:fs/2-1);
     
     %check thiiiiissssssss
-    barkFilters = getfbank(bins, 'auto', 'bark', @triang, 32);
+    barkFilters = getfbank(bins, 'auto', 'bark', @triang, nfilts);
 
     %decimate (con barks non stiamo già decimando?)
 
