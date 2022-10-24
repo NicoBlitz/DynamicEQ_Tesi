@@ -1,0 +1,8 @@
+function threshold = getDummyThreshold(nfilts)
+    
+    %random array[nfits] in dBFS
+    %divided in 4 bands 
+    for i=0:(nfilts/4)
+        
+    end
+end
