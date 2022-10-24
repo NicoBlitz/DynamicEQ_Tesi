@@ -28,6 +28,7 @@ for i=1:length(frequencies)
     end
 end
 
+[ fbank, cent ] = getfbank( frequencies, 'auto', 'bark', @triang, nfilts );
 W = mapping2barkmat(fs,nfilts,nfft);
 spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha_exp);
 ATQ_current=ATQ(frequencies);
