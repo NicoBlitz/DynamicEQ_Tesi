@@ -105,14 +105,9 @@ blockSC_Gain = blockSC * UIscGain;
 threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap, fbank, spreadingfunctionmatrix);
 thresholdBuffer(:,blockNumber)=threshold;
 
-
-%dummy threshold, to be delete
-% threshold = getDummyThreshold(nfilts);
-% threshold = threshold.';
-
 % Signal processing depending on the threshold just calculated
 
-wetSignal = dynamicEqualization(blockIN_Gain, threshold, nfft, fs, nfilts, frequencies) * UIoutGain;
+wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs) * UIoutGain;
 
 % Signal reconstruction (current block concatenation)
 wetSignal(offset:blockEnd,1)=blockIN_Gain(:,1);

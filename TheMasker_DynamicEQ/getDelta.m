@@ -1,7 +1,7 @@
 function deltaSignal = getDelta(inputSignal, threshold)
 
     deltaSignal = inputSignal - threshold;
-    % clf('reset')
+    %clf('reset')
     %plot threshold and delta
     THplot = plot(linspace(1,length(threshold),length(threshold)) ,(threshold(:).'), 'red');
     hold on;

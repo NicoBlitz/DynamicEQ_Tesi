@@ -1,23 +1,14 @@
-function filteredIN_Signal = prepareInputSignal(blockIN_Gain, nfft, fs, nfilts, frequencies)
+function inputSignal = prepareInputSignal(blockIN_Gain, fbank, fs)
 
     %converting to mono
-    monoSignal = mean(blockIN_Gain,2);
+    blockIN_Gain = mean(blockIN_Gain,2);
 
     %converting input signal to Frequency Domain
-    wetSignalFD = getFD(monoSignal, fs);
-    
-    %get only real value (xxxi values exist due to an offset? ) 
-    realwetSignalFD = real(wetSignalFD);
+    input_amp_ratio_barks = real(fbank*getFD(blockIN_Gain, fs));
 
     %convert amp to db
     %abs to avoid negative values
     %TODO: handle -inf cases
-    realwetSignalFD = amp2db(abs(realwetSignalFD));
-
-    %get filter banks (to bark, 32 val)
-    filterBanks = getfbank(frequencies, 'auto', 'bark', @triang, nfilts);
-    
-    %filtered signal
-    filteredIN_Signal = filterBanks*realwetSignalFD;
-
+    inputSignal = amp2db(abs(input_amp_ratio_barks));
+ 
 end
