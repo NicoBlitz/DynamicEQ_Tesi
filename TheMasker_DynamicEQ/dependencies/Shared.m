@@ -29,8 +29,11 @@ for i=1:length(frequencies)
 end
 
 [ fbank, cent ] = getfbank( frequencies, 'auto', 'bark', @triang, nfilts );
+
+spreadingfunctionmatrix = spreadingFunctionMatrix(maxfreq, nfilts, alpha_exp);
+
 W = mapping2barkmat(fs,nfilts,nfft);
-spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha_exp);
+%spreadingfuncmatrix = spreadingFunctionMat(maxfreq,nfilts,alpha_exp);
 ATQ_current=ATQ(frequencies);
 W_inv = mappingfrombarkmat(W,nfft);
 
