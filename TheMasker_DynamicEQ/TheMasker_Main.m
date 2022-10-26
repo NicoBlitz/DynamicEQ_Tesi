@@ -1,6 +1,6 @@
 
 close all;
-%bdclose all
+clear;
 
 % Add audio and dependencies folders to path
 folder = fileparts(which(mfilename)); 
@@ -13,12 +13,16 @@ Shared;
 [input,fs] = audioread("audio\Michael Buble edit.wav");
 [scInput,fs] = audioread("audio\Michael Buble edit.wav");
 
-endSample=20000; %take just first x samples
-endSample=min(endSample,length(input));
+
+
 
 % input signals truncation at "endSample"th sample
+endSample=20000; %take just first x samples
+
 % (if "endSample" is greater than the original duration (in samples),
 % "endSample" will be overrided with original duration);
+endSample=min(endSample,length(input));
+
 input=input(1:endSample,:);
 scInput=scInput(1:endSample,:);
 
@@ -89,7 +93,7 @@ param = SetUIParams(param);
 % Execute algorithm from first to last sample of the file with a step of nfft*2 
 
 blockNumber=1;
-
+figure;
 for offset = 1:buffersize:length(input)-buffersize
 
 blockEnd = offset+buffersize-1;
@@ -102,7 +106,7 @@ blockSC_Gain = blockSC * UIscGain;
 
 % Calculate block's threshold depending on our psychoacoustic model  
 % nfilts already exist in Shared - where ATQ and spreadingFunction are calculated 
-threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fftoverlap, fbank, spreadingfunctionmatrix);
+threshold = psychoAcousticAnalysis(blockSC_Gain, fs, fbank, spreadingfunctionmatrix, ATQ);
 thresholdBuffer(:,blockNumber)=threshold;
 
 % Signal processing depending on the threshold just calculated
@@ -130,9 +134,10 @@ blockNumber=blockNumber+1;
 end
 
 % Plot something
-figure;
-pspectrum(wetSignal(:,1),fs,'spectrogram','OverlapPercent',0, ...
-    'Leakage',1,'MinThreshold',-60, 'TimeResolution', 10e-3, 'FrequencyLimits',[20 20000]);
+% figure;
+% 
+% pspectrum(wetSignal(:,1),fs,'spectrogram','OverlapPercent',0, ...
+%     'Leakage',1,'MinThreshold',-60, 'TimeResolution', 10e-3, 'FrequencyLimits',[20 20000]);
 
 % linkaxes(ax1,ax2,ax3,'x');
 
@@ -140,21 +145,11 @@ pspectrum(wetSignal(:,1),fs,'spectrogram','OverlapPercent',0, ...
 % view(-45,65)
 % colormap bone
 
-% plotIt(sample, frequencies, thresholdBuffer); %Complex values are not supported.
-heatmap(thresholdBuffer); %Complex values are not supported.
+figure;
+heatmap(real(thresholdBuffer)); %Complex values are not supported.
 
 % Play file
 soundsc(input,fs)
 
-
-% Clean up
-%     
-% release(scope);
-% scopeHandles.scope = scope;
-   
-%close(tuningUI)
-clear HelperMultibandCompressionSim
-clear HelperMultibandCompressionSim_mex
-clear HelperUnpackUIData
  
 

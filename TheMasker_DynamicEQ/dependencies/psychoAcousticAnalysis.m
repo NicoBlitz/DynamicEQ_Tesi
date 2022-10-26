@@ -1,13 +1,19 @@
-function threshold = psychoAcousticAnalysis(blockSC_Gain, nfft, fs, fttoverlap, fbank, spreadingFunctionMatrix)
-    %Mono conversion
+function threshold = psychoAcousticAnalysis(blockSC_Gain, fs, fbank, spreadingFunctionMatrix, ATQ)
+    
+    % Mono conversion
     blockSC_Gain=mean(blockSC_Gain, 2);
-    %Convert to Frequency Domain
-    % [fbank,cent] = getfbank(frequencies, bandWidthFreq, 'bark', wfunc, nfilts)
-    amplitude_ratio_barks=real(fbank*getFD(blockSC_Gain, fs));
+    % Get Frequency Domain & decimate (in bark domain)
+    amplitude_ratio_barks=fbank*getFD(blockSC_Gain, fs);
     
-    dB_barks= amp2db(abs(amplitude_ratio_barks));
+    % "Spread" the threshold
+    relative_threshold=spreadingFunctionMatrix*amplitude_ratio_barks;
     
-    spreadedThreshold=spreadingFunctionMatrix*dB_barks;
-    %threshold = spreadedThreshold;
-    threshold = dB_barks;
+    threshold = relative_threshold;
+
+    % Comparing with relative and absolute threshold
+    % threshold = max(relative_threshold, ATQ);
+    
+    % Convert to dB
+    threshold = real(amp2db(abs(threshold)));    
+
 end
