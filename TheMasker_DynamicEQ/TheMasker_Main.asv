@@ -56,7 +56,6 @@ UIoutGain = 1;
 
 blockNumber=1;
 figure;
-
 for offset = 1:buffersize:length(input)-buffersize
 
 blockEnd = offset+buffersize-1;
@@ -79,16 +78,37 @@ wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs) * UIoutGain;
 % Signal reconstruction (current block concatenation)
 wetSignal(offset:blockEnd,1)=blockIN_Gain(:,1);
 wetSignal(offset:blockEnd,2)=blockIN_Gain(:,2);
+                
+
+    %upperMask = [frequencies.', maskThreshold.'];
+
+    %set(scope.SpectralMask,UpperMask=upperMask);
+    
+    % Visualize results
+    
+
+
+%     audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
+%     scope(input);
 
 blockNumber=blockNumber+1;
 
 end
 
+% Plot something
+% figure;
+% 
+% pspectrum(wetSignal(:,1),fs,'spectrogram','OverlapPercent',0, ...
+%     'Leakage',1,'MinThreshold',-60, 'TimeResolution', 10e-3, 'FrequencyLimits',[20 20000]);
+
+% linkaxes(ax1,ax2,ax3,'x');
+
+
+% view(-45,65)
+% colormap bone
+
 figure;
-thresholdHeatmap = heatmap(real(thresholdBuffer)); %Complex values are not supported.
-xlabel('time');
-ylabel('frequency number');
-title('Threshold over time in dBFS');
+heatmap(real(thresholdBuffer)); %Complex values are not supported.
 
 % Play file
 soundsc(input,fs)
