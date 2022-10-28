@@ -48,6 +48,44 @@ UIscGain = 0.8;
 
 UIoutGain = 1;
 
+% UI initialization
+param = struct([]);
+param = SetUIParams(param);
+
+%tuningUI = HelperCreateParamTuningUI(param, ...
+%   'Multiband Dynamic Compression Example');
+
+%set(tuningUI,'Position',[57 221 571 902]);
+
+
+% Create 1 matlab figure
+%figure;
+
+
+% Create the spectrum (Log_magn)
+%   mask = SpectralMaskSpecification("EnableMasks")
+
+%     scope = dsp.SpectrumAnalyzer("SampleRate", fs, "PlotAsTwoSidedSpectrum", false,...
+%         "FrequencyScale","Log", "SpectrumType", "Power density", ...
+%         "SpectrumUnits", "dBFS",...
+%         "MeasurementChannel", 3, ...
+%         "FFTLengthSource","Property",...
+%         "FFTLength",nfft, ...
+%         "FrequencyVector", transpose(frequencies), ...
+%         "FrequencyVectorSource", "property", ...
+%         "Window","Hamming",...
+%         "AxesScaling","Manual"...
+%         );
+%     set(scope.SpectralMask,EnabledMasks='upper');
+
+%         "SpectralMask", mask...
+
+    
+%     show(scope);
+
+
+%S = HelperUnpackUIData(tuningUI);
+
 
 %---------------------------------------------------------------------------------
 % PROCESS BLOCK 
@@ -56,7 +94,6 @@ UIoutGain = 1;
 
 blockNumber=1;
 figure;
-
 for offset = 1:buffersize:length(input)-buffersize
 
 blockEnd = offset+buffersize-1;
@@ -79,10 +116,34 @@ wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs) * UIoutGain;
 % Signal reconstruction (current block concatenation)
 wetSignal(offset:blockEnd,1)=blockIN_Gain(:,1);
 wetSignal(offset:blockEnd,2)=blockIN_Gain(:,2);
+                
+
+    %upperMask = [frequencies.', maskThreshold.'];
+
+    %set(scope.SpectralMask,UpperMask=upperMask);
+    
+    % Visualize results
+    
+
+
+%     audio = HelperMultibandCompressionSim(S,nfft,fs,samples);
+%     scope(input);
 
 blockNumber=blockNumber+1;
 
 end
+
+% Plot something
+% figure;
+% 
+% pspectrum(wetSignal(:,1),fs,'spectrogram','OverlapPercent',0, ...
+%     'Leakage',1,'MinThreshold',-60, 'TimeResolution', 10e-3, 'FrequencyLimits',[20 20000]);
+
+% linkaxes(ax1,ax2,ax3,'x');
+
+
+% view(-45,65)
+% colormap bone
 
 figure;
 thresholdHeatmap = heatmap(real(thresholdBuffer)); %Complex values are not supported.
