@@ -85,7 +85,10 @@ blockNumber=blockNumber+1;
 end
 
 figure;
-heatmap(real(thresholdBuffer)); %Complex values are not supported.
+thresholdHeatmap = heatmap(real(thresholdBuffer)); %Complex values are not supported.
+xlabel('time');
+ylabel('frequency number');
+title('Threshold over time in dBFS');
 
 % Play file
 soundsc(input,fs)

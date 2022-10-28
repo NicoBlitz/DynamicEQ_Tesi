@@ -10,8 +10,7 @@ function deltaSignal = getDelta(inputSignal, threshold)
     Dplot = plot(linspace(1,length(deltaSignal),length(deltaSignal)) ,(deltaSignal(:).'), 'green');
     hold off;
     legend({'threshold','input', 'delta'},'Location','best','Orientation','vertical');
-    xlabel('frequency number');
-    ylabel('dBFS');
-    title('Threshold vs input vs delta');
+    xlabel('filter number');
+    
 
 end
