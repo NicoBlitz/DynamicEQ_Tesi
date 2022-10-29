@@ -42,18 +42,30 @@ ATQ = fbank*ATQ_;
 ATQ = 10.^((ATQ-60)/20);
 ATQ = amp2db(ATQ);
 
-
+%{
 figure;
 ATQplot = plot(linspace(1,length(ATQ),length(ATQ)), ATQ, 'red');
 xlabel('frequency number');
 ylabel('dBSPL');
 legend('ATQ','Location','best','Orientation','vertical')
 title('Absolute threshold in quiet - still not mapped');
+%}
 
 %scale from frquency to Barks
 %Based on https://stackoverflow.com/questions/10754549/fft-bin-width-clarification
 %512 bins
 bin_width = fs / 2 / nfft; 
 bins=(0:bin_width:fs/2-1);
+
+for c=1:nfilts
+    if(c==1)
+        fBandWidths(c)=fCenters(c+1);
+    else if(c==nfilts)
+            fBandWidths(c)=20000-fCenters(c-1);
+        else
+        fBandWidths(c)=fCenters(c+1)-fCenters(c-1);
+        end
+    end
+end
 
 

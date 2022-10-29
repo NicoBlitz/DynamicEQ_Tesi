@@ -4,8 +4,8 @@ alpha_exp=1;  %Exponent for non-linear superposition of spreading functions
 buffersize=1024;
 nfft=buffersize/2;  %number of fft subbands
 nfilts=32;  %number of subbands in the bark domain <3
-fftshift=384;
-fftoverlap=(nfft-fftshift)/2;
+%fftshift=384;
+%fftoverlap=(nfft-fftshift)/2;
 
 maxfreq=22000;
 minfreq=20;
@@ -29,7 +29,7 @@ for i=1:length(frequencies)
 end
 
 [ fbank, cent ] = getfbank( frequencies, 'auto', 'bark', @triang, nfilts );
-
+fCenters=bark2hz(cent);
 spreadingfunctionmatrix = spreadingFunctionMatrix(maxfreq, nfilts, alpha_exp);
 
 W = mapping2barkmat(fs,nfilts,nfft);
@@ -45,15 +45,23 @@ ATQ = amp2db(ATQ);
 
 figure;
 ATQplot = plot(linspace(1,length(ATQ),length(ATQ)), ATQ, 'red');
-ATQplot.xlabel('(Decimated) barks')
-ATQplot.ylabel('dBSPL')
+xlabel('frequency number');
+ylabel('dBSPL');
 legend('ATQ','Location','best','Orientation','vertical')
-
+title('Absolute threshold in quiet - still not mapped');
 
 %scale from frquency to Barks
 %Based on https://stackoverflow.com/questions/10754549/fft-bin-width-clarification
 %512 bins
 bin_width = fs / 2 / nfft; 
 bins=(0:bin_width:fs/2-1);
+
+for c=1:nfilts
+    if(c==1)
+        fBandWidths(c)=fCenters(c+1);
+    end
+    if()
+    fBandWidths(c)=fCenters(c+1)-fCenters(c-1);
+end
 
 
