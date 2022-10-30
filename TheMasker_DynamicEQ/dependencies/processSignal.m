@@ -17,10 +17,20 @@ function processedSignal = processSignal(inputSignal, deltaSignal)
         end
         processedSignal(band) = in;
     end
-
+    
+    clf('reset')
     hold on;
     plot(linspace(1,length(inputSignal),length(inputSignal)) ,(inputSignal(:).'), 'blue');
     plot(linspace(1,length(processedSignal),length(processedSignal)) ,(processedSignal(:).'), 'green');
+   
+
     hold off;
+
+    xlabel('frequencies');
+    ylabel('dBFS');
+    legend({'inputSignal','wetSignal'}, 'Location','best','Orientation','vertical')
+    title('IN vs OUT ');
+
+
 
 end

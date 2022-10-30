@@ -1,4 +1,4 @@
-function wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs)
+function wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs, fCenters)
 
     %separation switch (-1 or 1)
     %TODO: Bring in Shared
@@ -17,9 +17,10 @@ function wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs)
 
     %apply delta on inputSignal (exp/comp)
     processedSignal = processSignal(inputSignal, deltaSignal);
-
+    
     %EQs
     reconstructedSignal = peakFilterEq(processedSignal);
+
 
     %---------------------------------------------------------------------
     wetSignal = processedSignal;

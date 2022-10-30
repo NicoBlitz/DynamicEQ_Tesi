@@ -7,10 +7,9 @@ function threshold = psychoAcousticAnalysis(blockSC_Gain, fs, fbank, spreadingFu
     
     % "Spread" the threshold
     relative_threshold=spreadingFunctionMatrix*amplitude_ratio_barks;
-    
-    threshold = relative_threshold;
 
     % Comparing with relative and absolute threshold
+    threshold = relative_threshold;
     % threshold = max(relative_threshold, ATQ);
     
     % Convert to dB

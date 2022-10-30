@@ -3,15 +3,16 @@ fs=44100;  % sampling frequency of audio signal
 alpha_exp=1;  %Exponent for non-linear superposition of spreading functions
 buffersize=1024;
 nfft=buffersize/2;  %number of fft subbands
-nfilts=32;  %number of subbands in the bark domain <3
-%fftshift=384;
-%fftoverlap=(nfft-fftshift)/2;
+nfilts=32;  %number of subbands in the bark domain
 
 maxfreq=22000;
 minfreq=20;
-min_power=-2000;
 
+min_dbFS=-96; % minimum dBFS
 
+% fftshift=384;
+% fftoverlap=(nfft-fftshift)/2;
+% min_power=-2000;
 
 % frequencies=linspace(minfreq,maxfreq,nfft/2);
 maxbark=hz2bark(maxfreq);
@@ -32,24 +33,16 @@ end
 fCenters=bark2hz(cent);
 spreadingfunctionmatrix = spreadingFunctionMatrix(maxfreq, nfilts, alpha_exp);
 
-W = mapping2barkmat(fs,nfilts,nfft);
-W_inv = mappingfrombarkmat(W,nfft);
+% W = mapping2barkmat(fs,nfilts,nfft);
+% W_inv = mappingfrombarkmat(W,nfft);
 
 %Absolute threshold in quiet
 ATQ_ = ATQ(frequencies).';
-ATQ = fbank*ATQ_;
+ATQ_= db2amp(ATQ_); % convert ATQ (nfft points) to dB
+ATQ = (fbank*ATQ_); % decimate ATQ to nfilts points
+ATQ = amp2db(ATQ); % convert ATQ (nfilts points) to dB
+ATQ = ATQ - (abs(min(ATQ))); % Relocate ATQ so that minimum is at 0
 
-ATQ = 10.^((ATQ-60)/20);
-ATQ = amp2db(ATQ);
-
-%{
-figure;
-ATQplot = plot(linspace(1,length(ATQ),length(ATQ)), ATQ, 'red');
-xlabel('frequency number');
-ylabel('dBSPL');
-legend('ATQ','Location','best','Orientation','vertical')
-title('Absolute threshold in quiet - still not mapped');
-%}
 
 %scale from frquency to Barks
 %Based on https://stackoverflow.com/questions/10754549/fft-bin-width-clarification

@@ -12,8 +12,8 @@ function absThresh = ATQ(frequencies)
 
    
     %Clip
-    absThresh(absThresh>=clipMaximum) =  clipMaximum;
-    absThresh(absThresh<=clipMinimum) = clipMinimum;
+%     absThresh(absThresh>=clipMaximum) =  clipMaximum;
+%     absThresh(absThresh<=clipMinimum) = clipMinimum;
 
     
 

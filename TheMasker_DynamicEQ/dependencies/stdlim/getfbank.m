@@ -47,8 +47,13 @@ function [ fbank, cent ] = getfbank( F, bw, scale, wfunc, nb )
         bw = (high-low)/(nb+1);
     end
     
-    nband = ceil( (high-low)/bw - 1 ); %off by one error
-    
+    % prova di correzione errore 
+    if (nargin<5)
+        nband = ceil( (high-low)/bw - 1 ); %off by one error
+    else 
+        nband = nb;
+    end
+
     cent = low + linspace(1,nband,nband).*bw;
     inferior = x2f(cent-bw);
     superior = x2f(cent+bw);
