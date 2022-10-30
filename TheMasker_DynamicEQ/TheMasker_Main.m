@@ -17,7 +17,7 @@ Shared;
 
 
 % input signals truncation at "endSample"th sample
-endSample=20000; %take just first x samples
+endSample= 20000; %take just first x samples
 
 % (if "endSample" is greater than the original duration (in samples),
 % "endSample" will be overrided with original duration);
@@ -74,11 +74,11 @@ thresholdBuffer(:,blockNumber)=threshold;
 
 % Signal processing depending on the threshold just calculated
 
-wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs) * UIoutGain;
+wetBlock = dynamicEqualization(blockIN_Gain, threshold, fbank, fs, SEP) * UIoutGain;
 
 % Signal reconstruction (current block concatenation)
-wetSignal(offset:blockEnd,1)=blockIN_Gain(:,1);
-wetSignal(offset:blockEnd,2)=blockIN_Gain(:,2);
+wetSignal(offset:blockEnd,1)=wetBlock(:,1);
+wetSignal(offset:blockEnd,2)=wetBlock(:,2);
 
 blockNumber=blockNumber+1;
 
@@ -91,7 +91,7 @@ ylabel('frequency number');
 title('Threshold over time in dBFS');
 
 % Play file
-soundsc(input,fs)
+soundsc(wetSignal,fs)
 
  
 

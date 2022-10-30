@@ -1,9 +1,9 @@
-function reconstructedSignal = peakFilterEq(processedSignal)
+function equalizedSignal = peakFilterEq(originalSignal, processedSignal)
 
     Shared;
-    processedSignal = processedSignal + 20;
+    processedSignal = processedSignal;
     
-    [A,B] = designParamEQ(2,processedSignal,fCenters,fBandWidths,"Orientation","row");
-    reconstructedSignal = processedSignal;
+    [B,A] = designParamEQ(32,processedSignal,fCenters,fBandWidths);
+    equalizedSignal = myFilter(originalSignal,B,A);
 
 end

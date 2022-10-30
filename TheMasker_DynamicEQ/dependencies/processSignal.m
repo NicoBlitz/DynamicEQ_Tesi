@@ -19,8 +19,9 @@ function processedSignal = processSignal(inputSignal, deltaSignal)
     end
 
     hold on;
-    plot(linspace(1,length(inputSignal),length(inputSignal)) ,(inputSignal(:).'), 'blue');
     plot(linspace(1,length(processedSignal),length(processedSignal)) ,(processedSignal(:).'), 'green');
     hold off;
+
+    legend({'threshold','input', 'delta +', 'delta -','wet'},'Location','best','Orientation','vertical');
 
 end

@@ -1,14 +1,8 @@
-function wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs)
-
-    %separation switch (-1 or 1)
-    %TODO: Bring in Shared
-    SEP = 1;
+function wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs, SEP)
 
     %prepare input signal: FFT, Barks and amp2dB conversion
     inputSignal = prepareInputSignal(blockIN_Gain, fbank, fs);
 
-    %TEST: higher value for more interesting delta
-    threshold = threshold + 10;
     %getting delta
     deltaSignal = getDelta(inputSignal, threshold);
 
@@ -19,10 +13,11 @@ function wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs)
     processedSignal = processSignal(inputSignal, deltaSignal);
 
     %EQs
-    reconstructedSignal = peakFilterEq(processedSignal);
+    %passiamo il segnale input originario 
+    equalizedSignal = peakFilterEq(blockIN_Gain, processedSignal);
 
     %---------------------------------------------------------------------
-    wetSignal = processedSignal;
+    wetSignal = equalizedSignal;
 
 
 end
