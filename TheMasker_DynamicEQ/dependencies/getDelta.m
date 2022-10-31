@@ -3,7 +3,7 @@ function deltaSignal = getDelta(inputSignal, threshold)
     deltaSignal = inputSignal - threshold;
     %plot threshold and delta
     
-    
+    clf('reset')
     hold on;
     plot(linspace(1,length(threshold),length(threshold)) ,(threshold(:).'), 'red');
     plot(linspace(1,length(inputSignal),length(inputSignal)) ,(inputSignal(:).'), 'blue');

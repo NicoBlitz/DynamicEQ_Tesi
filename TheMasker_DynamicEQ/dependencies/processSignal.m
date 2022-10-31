@@ -18,7 +18,6 @@ function processedSignal = processSignal(inputSignal, deltaSignal)
         processedSignal(band) = in;
     end
     
-    clf('reset')
     hold on;
     plot(linspace(1,length(processedSignal),length(processedSignal)) ,(processedSignal(:).'), 'green');
     hold off;
