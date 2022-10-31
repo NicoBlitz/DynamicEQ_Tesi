@@ -68,14 +68,29 @@ for c=1:nfilts
     end
 end
 
-types = {'BP1','BP2','LP','HP','NC','AP','PK','LS1','HS1','LS2','HS2'};
-typ = types{1};
-
 myFilter = dsp.BiquadFilter( ...
     SOSMatrixSource="Input port", ...
     ScaleValuesInputPort=false);
 
 %separation switch (-1 or 1)
-%TODO: Bring in Shared
 SEP = 1;
+
+
+%normalized for EQ
+%BRUTTO! probabilmente da scalare
+maxFCent = fCenters(nfilts); 
+for c=1:nfilts
+    EQcent(c)=fCenters(c)/maxFCent;
+end
+
+for c=1:nfilts
+    if(c==1)
+        EQband(c)=EQcent(c+1)-EQcent(c)/2;
+    else if(c==nfilts)
+            EQband(c)=1-EQcent(c-1);
+        else
+        EQband(c)=EQcent(c+1)-EQcent(c-1);
+        end
+    end
+end
 

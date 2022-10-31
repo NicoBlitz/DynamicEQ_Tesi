@@ -1,4 +1,9 @@
 
+%TODOS
+%migliorare exp e comp
+%capire output
+%ordinare dati su shared (mergiare da psycho)
+
 close all;
 clear;
 
@@ -84,11 +89,21 @@ blockNumber=blockNumber+1;
 
 end
 
+
 figure;
 thresholdHeatmap = heatmap(real(thresholdBuffer)); %Complex values are not supported.
 xlabel('time');
 ylabel('frequency number');
 title('Threshold over time in dBFS');
+
+%{
+%plot in vs out in TD
+figure;
+hold on
+plot(1:20000, input(:,1), 'blue');
+plot(1:20000, wetSignal(:,1), 'red');
+title('in vs out');
+%}
 
 % Play file
 soundsc(wetSignal,fs)
