@@ -21,7 +21,7 @@ Shared;
 
 
 % input signals truncation at "endSample"th sample
-endSample= 20000; %take just first x samples
+endSample= 100000; %take just first x samples
 
 % (if "endSample" is greater than the original duration (in samples),
 % "endSample" will be overrided with original duration);
