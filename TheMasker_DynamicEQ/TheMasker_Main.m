@@ -1,4 +1,9 @@
 
+%TODOS
+%migliorare exp e comp
+%capire output
+%ordinare dati su shared (mergiare da psycho)
+
 close all;
 clear;
 
@@ -16,7 +21,7 @@ Shared;
 
 
 % input signals truncation at "endSample"th sample
-endSample=20000; %take just first x samples
+endSample= 20000; %take just first x samples
 
 % (if "endSample" is greater than the original duration (in samples),
 % "endSample" will be overrided with original duration);
@@ -82,22 +87,30 @@ threshold = psychoAcousticAnalysis(blockSC_Gain, fs, fbank, spreadingfunctionmat
 thresholdBuffer(:,blockNumber)=threshold;
 
 % Signal processing depending on the threshold just calculated
+<<<<<<< HEAD
 wetSignal = dynamicEqualization(blockIN_Gain, threshold, fbank, fs, fCenters) * UIoutGain;
+=======
+
+wetBlock = dynamicEqualization(blockIN_Gain, threshold, fbank, fs, SEP) * UIoutGain;
+>>>>>>> feature/DynamicEq
 
 % Signal reconstruction (current block concatenation)
-wetSignal(offset:blockEnd,1)=blockIN_Gain(:,1);
-wetSignal(offset:blockEnd,2)=blockIN_Gain(:,2);
+wetSignal(offset:blockEnd,1)=wetBlock(:,1);
+wetSignal(offset:blockEnd,2)=wetBlock(:,2);
 
 blockNumber=blockNumber+1;
 
 end
 
+
 % Threshold heatmap plot
+%{
 figure;
 thresholdHeatmap = heatmap(real(thresholdBuffer)); %Complex values are not supported.
 xlabel('time');
 ylabel('frequency number');
 title('Threshold over time in dBFS');
+%}
 
 % ATQ plot (dBFS vs frequencies)
 figure;
@@ -107,9 +120,18 @@ ylabel('dBFS');
 legend('ATQ','Location','best','Orientation','vertical')
 title('Absolute threshold in quiet');
 
+%in vs out in TD plot
+%{
+figure;
+hold on
+plot(1:20000, input(:,1), 'blue');
+plot(1:20000, wetSignal(:,1), 'red');
+title('in vs out');
+%}
+
 
 % Play file
-soundsc(input,fs)
+soundsc(wetSignal,fs)
 
  
 

@@ -1,9 +1,11 @@
-function reconstructedSignal = peakFilterEq(processedSignal)
+function equalizedSignal = peakFilterEq(originalSignal, processedSignal)
 
     Shared;
-    processedSignal = processedSignal + 20;
+    processedSignal = processedSignal+20;
     
-    [A,B] = designParamEQ(2,processedSignal,fCenters,fBandWidths,"Orientation","row");
-    reconstructedSignal = processedSignal;
+    [B,A] = designParamEQ(4,processedSignal,EQcent,EQband);
+    [bB,aA] = designParamEQ(4,processedSignal,EQcent,EQband,"Orientation","row");
+    %fvtool([bB,aA]);
+    equalizedSignal = myFilter(originalSignal,B,A);
 
 end

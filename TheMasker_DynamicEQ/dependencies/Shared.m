@@ -1,6 +1,6 @@
 
 fs=44100;  % sampling frequency of audio signal
-alpha_exp=1;  %Exponent for non-linear superposition of spreading functions
+alpha_exp=0.8;  %Exponent for non-linear superposition of spreading functions
 buffersize=1024;
 nfft=buffersize/2;  %number of fft subbands
 nfilts=32;  %number of subbands in the bark domain
@@ -52,13 +52,38 @@ bins=(0:bin_width:fs/2-1);
 
 for c=1:nfilts
     if(c==1)
-        fBandWidths(c)=fCenters(c+1);
+        fBandWidths(c)=fCenters(c+1)-minfreq;
     else if(c==nfilts)
-            fBandWidths(c)=20000-fCenters(c-1);
+            fBandWidths(c)=maxfreq-fCenters(c-1);
         else
         fBandWidths(c)=fCenters(c+1)-fCenters(c-1);
         end
     end
 end
 
+myFilter = dsp.BiquadFilter( ...
+    SOSMatrixSource="Input port", ...
+    ScaleValuesInputPort=false);
+
+%separation switch (-1 or 1)
+SEP = 1;
+
+
+%normalized for EQ
+%BRUTTO! probabilmente da scalare
+maxFCent = fCenters(nfilts); 
+for c=1:nfilts
+    EQcent(c)=fCenters(c)/maxFCent;
+end
+
+for c=1:nfilts
+    if(c==1)
+        EQband(c)=EQcent(c+1)-EQcent(c)/2;
+    else if(c==nfilts)
+            EQband(c)=1-EQcent(c-1);
+        else
+        EQband(c)=EQcent(c+1)-EQcent(c-1);
+        end
+    end
+end
 
