@@ -62,8 +62,8 @@ UIcleanUp = 1.0;
 % Execute algorithm from first to last sample of the file with a step of nfft*2 
 
 
-ATQ_scaled = ATQ * UIcleanUp; % Scale ATQ according to UI knob "CleanUp"
-ATQ_scaled = ATQ_scaled + min_dbFS; % Relocate ATQ so that minimum is at -96 dBFS
+ATQ_scaled = ATQ * UIcleanUp * ATQ_lift; % Scale ATQ according to UI knob "CleanUp" and internal value ATQ_lift
+ATQ_scaled = ATQ_scaled + min_dbFS; % Lift ATQ so that minimum is at -96 dBFS
 ATQ_scaled = min(ATQ_scaled, 0); % Clip (highest values of) ATQ at 0 dB
 
 figure;

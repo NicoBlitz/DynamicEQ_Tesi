@@ -9,6 +9,7 @@ maxfreq=22000;
 minfreq=20;
 
 min_dbFS=-96; % minimum dBFS
+ATQ_lift=1.3;
 
 % fftshift=384;
 % fftoverlap=(nfft-fftshift)/2;
