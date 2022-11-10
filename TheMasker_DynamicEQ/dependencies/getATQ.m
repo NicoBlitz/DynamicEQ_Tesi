@@ -1,6 +1,6 @@
 
 
-function ATQ = ATQ(f, fbank)
+function ATQ = getATQ(f, fbank)
   
     %convert the bark subband frequencies to Hz:
     clipMinimum=-20;

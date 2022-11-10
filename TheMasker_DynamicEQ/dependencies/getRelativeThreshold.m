@@ -1,4 +1,4 @@
-function threshold = psychoAcousticAnalysis(blockSC_Gain, fs, fbank, spreadingFunctionMatrix, ATQ)
+function relative_threshold = getRelativeThreshold(blockSC_Gain, fs, fbank, spreadingFunctionMatrix)
     
     % Mono conversion
     blockSC_Gain=mean(blockSC_Gain, 2);
@@ -12,8 +12,6 @@ function threshold = psychoAcousticAnalysis(blockSC_Gain, fs, fbank, spreadingFu
     % Convert to dB
     relative_threshold = real(amp2db(relative_threshold));
 
-    % Comparing with relative and absolute threshold
-    %    threshold = relative_threshold;
-    threshold = max(relative_threshold, ATQ);
+   
 
 end

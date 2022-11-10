@@ -9,24 +9,29 @@ addpath(genpath(folder));
 % Creates constant variables
 Shared;
 
+% Create main plot
+figure;
+
+%Initialize freq. response plot
+B=ones(3,nfilts);
+A=B;
+fvplot = fvtool([B.',A.']);
+
 % Read entire files
 [input] = audioread("audio\Michael Buble edit.wav");
 [scInput] = audioread("audio\Michael Buble edit.wav");
 % [scInput] = audioread("audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
 
-duration=length(input);
-totBlocks=ceil(duration/buffersize)-1;
-sample=linspace(1,duration,duration);
-blocks=linspace(1,totBlocks,totBlocks);
+duration= min(20000,length(input)); %take just first x samples, if x < input length
+totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be processed
 
-% input signals truncation at "endSample"th sample
-endSample= min(20000,length(input)); %take just first x samples, if x < input length
-
-input=input(1:endSample,:);
-scInput=scInput(1:endSample,:);
+% input signals truncation at "duration"th sample
+input=input(1:duration,:);
+scInput=scInput(1:duration,:);
 
 
-% PREPARE TO PLAY
+% -------------------------------------------------------------------------------------
+% PREPARE TO PLAY 
 
 % signals initialization
 threshold = zeros(nfft,1);
@@ -37,66 +42,77 @@ wetSignal = zeros(duration,2);
 UIinGain = 0.9;
 UIscGain = 0.9;
 UIoutGain = 1.0;
-UI_atq_weight = 1.0;
-UIseparation = 1;
 
-%---------------------------------------------------------------------------------
-% PROCESS BLOCK 
-% Execute algorithm from first to last sample of the file with a step of nfft*2 
-ATQ_decimated = ATQ(frequencies, fbank);
-ATQ_scaled = ATQ_decimated * UI_atq_weight * ATQ_lift; % Scale ATQ according to UI knob "CleanUp" and internal value ATQ_lift
-ATQ_scaled = ATQ_scaled + min_dbFS; % Lower ATQ so that minimum is at -96 dBFS
-ATQ_scaled = min(ATQ_scaled, 0); % Clip (highest values of) ATQ at 0 dB
+UIatqWeight = 1.0;
+UIseparation = true;
+UIcompAmount = 1.0;
+UIexpAmount = 1.0;
+UImix= 1.0;
+
+UIparams = struct('gain', struct( ...
+    'in', UIinGain, ...
+    'out', UIoutGain, ...
+    'sc', UIscGain), ...
+                    'eq', struct( ...
+    'atq', UIatqWeight, ...
+    'sep', UIseparation, ...
+    'comp', UIcompAmount, ...
+    'exp', UIexpAmount, ...
+    'mix', UImix) ...
+    );
 
 
-
-% Create main plot
-figure;
+% Get Absolute Threshold in Quiet
+ATQ_decimated = getATQ(frequencies, fbank);
+ATQ_scaled = scaleATQ(ATQ_decimated, UIparams.eq.atq, ATQ_lift, min_dbFS);
 
 
 blockNumber=1;
 
+%---------------------------------------------------------------------------------
+% PROCESS BLOCK 
+% Execute algorithm from first to last sample of the file with a step of nfft*2 
+
+
 for offset = 1:buffersize:length(input)-buffersize
     
+
     % Calculate last sample of the block
     blockEnd = offset+buffersize-1;
   
     % Shift among samples and multiply by Input and Sidechain's UI Gain 
-    blockIN_Gain = input(offset:blockEnd,:) * UIinGain;
-    blockSC_Gain = scInput(offset:blockEnd,:) * UIscGain;
+    blockIN_Gain = input(offset:blockEnd,:) * UIparams.gain.in;
+    blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc;
     
     % Calculate block's threshold depending on our psychoacoustic model  
-    threshold = psychoAcousticAnalysis(blockSC_Gain, fs, fbank, spreadingfunctionmatrix, ATQ_scaled);
+    relative_threshold = getRelativeThreshold(blockSC_Gain, fs, fbank, spreadingfunctionmatrix);
     
-    % Prepare input signal: FFT, Barks and amp2dB conversion
-    input_Freq_dB = decimateFD(blockIN_Gain, fbank, fs);
+    % Comparing with relative and absolute threshold
+    threshold = max(relative_threshold, ATQ_scaled);
+
+    % Input frequency domain and decimation
+    input_Freq_dB = getMagnitudeFD(blockIN_Gain, fs, fbank);
     
     % Getting delta
     delta = input_Freq_dB - threshold;
     
     % UI separation switch
-    delta_modulated = delta*UIseparation;
+    delta_modulated = modulateDelta(delta, UIparams.eq);
     
     % Equalization
     [wetBlock,B,A] = peakFilterEq(blockIN_Gain, delta_modulated, EQcent, EQband, myFilter, filterOrder);
-    
-    % "Decimation" of the wet Signal to fit in the same plot
-    wetBlock_mono = mean(wetBlock,2);
-    wetBlock_Freq = fbank*abs(getFD(wetBlock_mono, fs));
-    wetBlock_Freq_dB = amp2db(wetBlock_Freq);
-
-    % Calculate effective gain reduction
-    gainReduction = wetBlock_Freq_dB - input_Freq_dB;
         
     % Threshold reconstruction (current block concatenation)
     thresholdBuffer(:,blockNumber)=threshold;
     
     % Signal reconstruction (current block concatenation)
-    wetSignal(offset:blockEnd,:)= wetBlock * UIoutGain;
+    wetSignal(offset:blockEnd,:)= wetBlock * UIparams.gain.out;
     
-    DryPlot= amp2db(abs(getFD(mean(blockIN_Gain,2), fs)));
-    WetPlot= amp2db(abs(getFD(wetBlock_mono, fs)));
-   
+    % PLOT PREPARATION
+    wetBlock_Freq_dB = getMagnitudeFD(wetBlock, fs, fbank);     % "Decimation" of the wet Signal to fit in the same plot (DynamicEQ values)
+    DryPlot= getMagnitudeFD(blockIN_Gain, fs); % No decimation
+    WetPlot= getMagnitudeFD(wetBlock, fs); % No decimation
+    gainReduction = wetBlock_Freq_dB - input_Freq_dB;
  
     % FIRST PLOT:  
     clf('reset');
@@ -107,8 +123,8 @@ for offset = 1:buffersize:length(input)-buffersize
     hold on;
     
     % Plot relative and absolute thresholds
-    THplot= semilogx(fCenters, threshold, '--black');
     ATQplot = semilogx(fCenters, ATQ_scaled, '--red');
+    THplot= semilogx(fCenters, threshold, '--black');
     
     % Plot delta negative and positive.
     deltaPOSplot= bar(fCenters, max(delta_modulated,0), 'g', 'BarWidth', 1);
@@ -118,20 +134,21 @@ for offset = 1:buffersize:length(input)-buffersize
 %     OUTplot= semilogx(fCenters, wetBlock_Freq_dB, 'Color', wetColor);
 %     GRplot= semilogx(fCenters, gainReduction, 'red');
     hold off;
+
     % Plot's title and legend
     xlabel('frequency (Hz)');
     ylabel('dBFS');
-    legend({'Input', 'Threshold', 'ATQ', 'Delta+', 'Delta-'}, ...
+    legend({'Input', 'ATQ', 'Threshold', 'Delta+', 'Delta-'}, ...
         'Location','best','Orientation','vertical');
     title('DynamicEQ values');
 
-    
+   
 
     % SECOND PLOT: IN vs OUT
     subplot(1,2,2);
     DRYplot= semilogx(frequencies, DryPlot, 'red');
     hold on;
-    WETplot= semilogx(frequencies, WetPlot, 'Color', wetColor);
+    WETplot= semilogx(frequencies, WetPlot, 'blue');
     hold off;
     xlabel('frequency (Hz)');
     ylabel('dBFS');
@@ -139,6 +156,11 @@ for offset = 1:buffersize:length(input)-buffersize
     title('IN vs OUT');
 
 
+    % THIRD PLOT: eq frequency response (uncommenting will slow down execution)
+%     close(fvplot);
+%     fvplot = fvtool([B.',[ones(1,length(A)); A].'],'FrequencyScale','log','Fs',fs, ...
+%         'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
+%         'Color','white');
 
 
     % Increment block number
@@ -147,16 +169,10 @@ for offset = 1:buffersize:length(input)-buffersize
 end
 
 
-
-% THIRD PLOT: eq frequency response
-A_=ones(3,length(A));
-A_(2:3,:)=A;
-fvplot = fvtool([B.',A_.'],'FrequencyScale','log','Fs',fs, ...
-    'FrequencyRange', 'Specify freq. vector', ...
-    'Color','white');
-fvplot.FrequencyVector=frequencies;
-
-
+% FOURTH PLOT: threshold over time
+blocks=linspace(1,totBlocks,totBlocks);
+hmTrucation=min(70,length(blocks));
+heatmap(blocks(1,1:hmTrucation), round(fCenters), thresholdBuffer(:,1:hmTrucation));
 
 
 % Play wet signal

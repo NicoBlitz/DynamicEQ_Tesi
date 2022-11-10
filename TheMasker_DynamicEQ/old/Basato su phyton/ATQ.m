@@ -17,13 +17,12 @@ function absThresh = ATQ(frequencies)
     %%absThresh=10.0.^((absThreshold)/20);
     absThresh=db2amp(absThreshold);
 
-    m=min(absThresh)
-    M=max(absThresh)
+    m=min(absThresh);
+    M=max(absThresh);
     %Clip
     absThresh(absThresh> clipMaximum) =  clipMaximum;
     absThresh(absThresh<clipMinimum) = clipMinimum;
     absThresh=absThresh-m;
-minimoooooo=min(absThresh)
     
 % semilogx(barks, absThresh, barks, absThresh, 'ko');
 %    %semilogx(f, TH(:,ATH), '-r', 'LineWidth', 2);
