@@ -119,7 +119,7 @@ for offset = 1:buffersize:length(input)-buffersize
     WetPlot= getMagnitudeFD(wetBlock, fs); % No decimation
     gainReduction = wetBlock_Freq_dB - input_Freq_dB;
  
-    % FIRST PLOT:  
+    % ----------------- FIRST PLOT:  
     clf('reset');
     subplot(1,2,1);
 
@@ -135,9 +135,6 @@ for offset = 1:buffersize:length(input)-buffersize
     deltaPOSplot= bar(fCenters, max(delta_modulated,0), 'g', 'BarWidth', 1);
     deltaNEGplot= bar(fCenters, min(delta_modulated,0), 'm', 'BarWidth', 1);
     
-    % Plot wet and gain reduction signal
-%     OUTplot= semilogx(fCenters, wetBlock_Freq_dB, 'Color', wetColor);
-%     GRplot= semilogx(fCenters, gainReduction, 'red');
     hold off;
 
     % Plot's title and legend
@@ -149,7 +146,7 @@ for offset = 1:buffersize:length(input)-buffersize
 
    
 
-    % SECOND PLOT: IN vs OUT
+    % --------------- SECOND PLOT: IN vs OUT
     subplot(1,2,2);
     SCplot= semilogx(frequencies, SCPlot, 'black');
     hold on;
@@ -162,7 +159,7 @@ for offset = 1:buffersize:length(input)-buffersize
     title('IN vs OUT');
 
 
-    % THIRD PLOT: temporary eq frequency response (uncommenting will slow down execution)
+    % --------------- THIRD PLOT: temporary eq frequency response (uncommenting will slow down execution)
 %     close(fvplot);
 %     fvplot = fvtool([B.',[ones(1,length(A)); A].'],'FrequencyScale','log','Fs',fs, ...
 %         'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
@@ -174,7 +171,7 @@ for offset = 1:buffersize:length(input)-buffersize
 
 end
 
-% THIRD PLOT: last block's eq frequency response 
+% --------------------- THIRD PLOT: last block's eq frequency response 
 close(fvplot);
 fvplot = fvtool([B.',[ones(1,length(A)); A].'],'FrequencyScale','log','Fs',fs, ...
     'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
