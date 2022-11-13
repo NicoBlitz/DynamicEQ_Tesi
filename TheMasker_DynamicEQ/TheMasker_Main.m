@@ -9,18 +9,18 @@ addpath(genpath(folder));
 % Creates constant variables
 Shared;
 
-% Create main plot
-figure;
-
 %Initialize freq. response plot
 B=ones(3,nfilts);
 A=B;
 fvplot = fvtool([B.',A.']);
 
 % Read entire files
-[input] = audioread("audio\Michael Buble edit.wav");
-[scInput] = audioread("audio\Michael Buble edit.wav");
-% [scInput] = audioread("audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
+input = audioread("audio\Michael Buble edit.wav");
+% input = audioread("audio\sineSweep.wav");
+scInput = audioread("audio\Michael Buble edit.wav");
+% scInput = audioread("audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
+% scInput = audioread("audio\sineSweep.wav");
+% scInput = scInput(200000:end,:); % shift scInput of x samples
 
 duration= min(20000,length(input)); %take just first x samples, if x < input length
 totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be processed
@@ -54,11 +54,11 @@ UIparams = struct('gain', struct( ...
     'out', UIoutGain, ...
     'sc', UIscGain), ...
                     'eq', struct( ...
-    'atq', UIatqWeight, ...
-    'sep', UIseparation, ...
-    'comp', UIcompAmount, ...
-    'exp', UIexpAmount, ...
-    'mix', UImix) ...
+    'atq', UIatqWeight, ...  % cleanUp
+    'sep', UIseparation, ... % switch separate
+    'comp', UIcompAmount, ... % comp
+    'exp', UIexpAmount, ... % exp
+    'mix', UImix) ... % mix
     );
 
 
@@ -67,12 +67,16 @@ ATQ_decimated = getATQ(frequencies, fbank);
 ATQ_scaled = scaleATQ(ATQ_decimated, UIparams.eq.atq, ATQ_lift, min_dbFS);
 
 
+% Create main plot
+figure;
+
+
+
 blockNumber=1;
 
-%---------------------------------------------------------------------------------
+% --------------------------------------------------------------------------------
 % PROCESS BLOCK 
-% Execute algorithm from first to last sample of the file with a step of nfft*2 
-
+% Execute algorithm from first to last sample of the file with a step of buffersize
 
 for offset = 1:buffersize:length(input)-buffersize
     
@@ -97,7 +101,7 @@ for offset = 1:buffersize:length(input)-buffersize
     delta = input_Freq_dB - threshold;
     
     % UI separation switch
-    delta_modulated = modulateDelta(delta, UIparams.eq);
+    delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule);
     
     % Equalization
     [wetBlock,B,A] = peakFilterEq(blockIN_Gain, delta_modulated, EQcent, EQband, myFilter, filterOrder);
@@ -111,6 +115,7 @@ for offset = 1:buffersize:length(input)-buffersize
     % PLOT PREPARATION
     wetBlock_Freq_dB = getMagnitudeFD(wetBlock, fs, fbank);     % "Decimation" of the wet Signal to fit in the same plot (DynamicEQ values)
     DryPlot= getMagnitudeFD(blockIN_Gain, fs); % No decimation
+    SCPlot= getMagnitudeFD(blockSC_Gain, fs); % No decimation
     WetPlot= getMagnitudeFD(wetBlock, fs); % No decimation
     gainReduction = wetBlock_Freq_dB - input_Freq_dB;
  
@@ -146,17 +151,18 @@ for offset = 1:buffersize:length(input)-buffersize
 
     % SECOND PLOT: IN vs OUT
     subplot(1,2,2);
-    DRYplot= semilogx(frequencies, DryPlot, 'red');
+    SCplot= semilogx(frequencies, SCPlot, 'black');
     hold on;
+    DRYplot= semilogx(frequencies, DryPlot, 'red');
     WETplot= semilogx(frequencies, WetPlot, 'blue');
     hold off;
     xlabel('frequency (Hz)');
     ylabel('dBFS');
-    legend({'IN','OUT'}, 'Location','best','Orientation','vertical')    
+    legend({'SC','IN','OUT'}, 'Location','best','Orientation','vertical')    
     title('IN vs OUT');
 
 
-    % THIRD PLOT: eq frequency response (uncommenting will slow down execution)
+    % THIRD PLOT: temporary eq frequency response (uncommenting will slow down execution)
 %     close(fvplot);
 %     fvplot = fvtool([B.',[ones(1,length(A)); A].'],'FrequencyScale','log','Fs',fs, ...
 %         'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
@@ -168,11 +174,16 @@ for offset = 1:buffersize:length(input)-buffersize
 
 end
 
+% THIRD PLOT: last block's eq frequency response 
+close(fvplot);
+fvplot = fvtool([B.',[ones(1,length(A)); A].'],'FrequencyScale','log','Fs',fs, ...
+    'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
+    'Color','white');
 
 % FOURTH PLOT: threshold over time
 blocks=linspace(1,totBlocks,totBlocks);
-hmTrucation=min(70,length(blocks));
-heatmap(blocks(1,1:hmTrucation), round(fCenters), thresholdBuffer(:,1:hmTrucation));
+hmTrucation=min(300,length(blocks));
+heatmap(blocks(1,totBlocks-hmTrucation+1:end), round(fCenters), thresholdBuffer(:,totBlocks-hmTrucation+1:end));
 
 
 % Play wet signal
