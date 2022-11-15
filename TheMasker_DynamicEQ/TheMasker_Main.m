@@ -9,10 +9,14 @@ addpath(genpath(folder));
 % Creates constant variables
 Shared;
 
+
 %Initialize freq. response plot
-B=ones(3,nfilts);
-A=B;
-fvplot = fvtool([B.',A.']);
+num_L=ones(3,nfilts);
+den_L=num_L;
+fvplot = fvtool([num_L.',den_L.']);
+num_R=num_L;
+den_R=num_L;
+
 
 % Read entire files
 input = audioread("audio\Michael Buble edit.wav");
@@ -35,7 +39,8 @@ scInput=scInput(1:duration,:);
 
 % signals initialization
 threshold = zeros(nfft,1);
-thresholdBuffer = zeros(nfilts,totBlocks);
+thresholdBuffer_L = zeros(nfilts,totBlocks);
+thresholdBuffer_R = zeros(nfilts,totBlocks);
 wetSignal = zeros(duration,2);
 
 % parameters initialization
@@ -43,10 +48,11 @@ UIinGain = 0.9;
 UIscGain = 0.9;
 UIoutGain = 1.0;
 
-UIatqWeight = 1.0;
 UIseparation = true;
 UIcompAmount = 1.0;
 UIexpAmount = 1.0;
+UIatqWeight = 1.0;
+UIstereoLinked = 1.0;
 UImix= 1.0;
 
 UIparams = struct('gain', struct( ...
@@ -55,6 +61,7 @@ UIparams = struct('gain', struct( ...
     'sc', UIscGain), ...
                     'eq', struct( ...
     'atq', UIatqWeight, ...  % cleanUp
+    'stereolink', UIstereoLinked, ... %stereo linked
     'sep', UIseparation, ... % switch separate
     'comp', UIcompAmount, ... % comp
     'exp', UIexpAmount, ... % exp
@@ -70,7 +77,7 @@ ATQ_scaled = scaleATQ(ATQ_decimated, UIparams.eq.atq, ATQ_lift, min_dbFS);
 % Create main plot
 figure;
 
-
+stereo_plot=false;
 
 blockNumber=1;
 
@@ -89,14 +96,16 @@ for offset = 1:buffersize:length(input)-buffersize
     blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc;
     
     % Calculate block's threshold depending on our psychoacoustic model  
-    relative_threshold = getRelativeThreshold(blockSC_Gain, fs, fbank, spreadingfunctionmatrix);
-    
+    relative_threshold(:,1)= getRelativeThreshold(blockSC_Gain(:,1), fs, fbank, spreadingfunctionmatrix); % Left channel rel. threshold
+    relative_threshold(:,2)= getRelativeThreshold(blockSC_Gain(:,2), fs, fbank, spreadingfunctionmatrix); % Right channel rel. threshold
+
     % Comparing with relative and absolute threshold
     threshold = max(relative_threshold, ATQ_scaled);
 
     % Input frequency domain and decimation
-    input_Freq_dB = getMagnitudeFD(blockIN_Gain, fs, fbank);
-    
+    input_Freq_dB(:,1) = getMagnitudeFD(blockIN_Gain(:,1), fs, fbank); % Left channel input fd and decimation
+    input_Freq_dB(:,2) = getMagnitudeFD(blockIN_Gain(:,2), fs, fbank); % Right channel input fd and decimation
+
     % Getting delta
     delta = input_Freq_dB - threshold;
     
@@ -104,58 +113,96 @@ for offset = 1:buffersize:length(input)-buffersize
     delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule);
     
     % Equalization
-    [wetBlock,B,A] = peakFilterEq(blockIN_Gain, delta_modulated, EQcent, EQband, myFilter, filterOrder);
-        
+    [wetBlock(:,1),num_L,den_L] = peakFilterEq(blockIN_Gain(:,1), delta_modulated(:,1), EQcent, EQband, myFilter, filterOrder); % Left channel EQing
+    [wetBlock(:,2),num_R,den_R] = peakFilterEq(blockIN_Gain(:,2), delta_modulated(:,2), EQcent, EQband, myFilter, filterOrder); % Right Channel EQing
+    
+
     % Threshold reconstruction (current block concatenation)
-    thresholdBuffer(:,blockNumber)=threshold;
+    thresholdBuffer_L(:,blockNumber)=threshold(:,1);
+    thresholdBuffer_R(:,blockNumber)=threshold(:,2);
     
     % Signal reconstruction (current block concatenation)
     wetSignal(offset:blockEnd,:)= wetBlock * UIparams.gain.out;
     
     % PLOT PREPARATION
-    wetBlock_Freq_dB = getMagnitudeFD(wetBlock, fs, fbank);     % "Decimation" of the wet Signal to fit in the same plot (DynamicEQ values)
-    DryPlot= getMagnitudeFD(blockIN_Gain, fs); % No decimation
-    SCPlot= getMagnitudeFD(blockSC_Gain, fs); % No decimation
-    WetPlot= getMagnitudeFD(wetBlock, fs); % No decimation
-    gainReduction = wetBlock_Freq_dB - input_Freq_dB;
+    DryPlot_L= getMagnitudeFD(blockIN_Gain(:,1), fs); % No decimation
+    DryPlot_R= getMagnitudeFD(blockIN_Gain(:,2), fs); % No decimation
+
+    SCPlot_L= getMagnitudeFD(blockSC_Gain(:,1), fs); % No decimation
+    SCPlot_R= getMagnitudeFD(blockSC_Gain(:,2), fs); % No decimation
+
+    WetPlot_L= getMagnitudeFD(wetBlock(:,1), fs); % No decimation
+    WetPlot_R= getMagnitudeFD(wetBlock(:,2), fs); % No decimation
+
  
     % ----------------- FIRST PLOT:  
     clf('reset');
     subplot(1,2,1);
 
     % Plot input
-    INplot= semilogx(fCenters, input_Freq_dB, 'blue');
+    INplot_L= semilogx(fCenters, input_Freq_dB(:,1), 'blue');
     hold on;
-    
+    if(stereo_plot==true)
+    INplot_R= semilogx(fCenters, input_Freq_dB(:,2), 'Color', 'red');
+    end
     % Plot relative and absolute thresholds
-    ATQplot = semilogx(fCenters, ATQ_scaled, '--red');
-    THplot= semilogx(fCenters, threshold, '--black');
     
+    ATQplot = semilogx(fCenters, ATQ_scaled, ':black');
+    THplot_L= semilogx(fCenters, threshold(:,1), '--', 'Color', [0 0.4470 0.7410]);
+    if(stereo_plot==true)
+    THplot_R= semilogx(fCenters, threshold(:,2), '--', 'Color', [0.9350 0.0780 0.1840]);
+    end
     % Plot delta negative and positive.
-    deltaPOSplot= bar(fCenters, max(delta_modulated,0), 'g', 'BarWidth', 1);
-    deltaNEGplot= bar(fCenters, min(delta_modulated,0), 'm', 'BarWidth', 1);
+    deltaPlot_L= bar(fCenters, delta_modulated(:,1), 'b');
+    if(stereo_plot==true)
+    deltaPlot_R= bar(fCenters, delta_modulated(:,2), 'r');
+    end
+
+%     deltaNEGplot= bar(fCenters, min(delta_modulated(:,1),0), 'm');
     
     hold off;
 
     % Plot's title and legend
     xlabel('frequency (Hz)');
     ylabel('dBFS');
-    legend({'Input', 'ATQ', 'Threshold', 'Delta+', 'Delta-'}, ...
+    if(stereo_plot==true)
+    legend({'Input_L', 'Input_R', 'ATQ', 'Threshold_L', 'Threshold_R', 'Delta_L', 'Delta_R'}, ...
         'Location','best','Orientation','vertical');
+    else 
+    legend({'Input_L', 'ATQ', 'Threshold_L', 'Delta_L'}, ...
+    'Location','best','Orientation','vertical');
+    end
     title('DynamicEQ values');
 
    
 
     % --------------- SECOND PLOT: IN vs OUT
     subplot(1,2,2);
-    SCplot= semilogx(frequencies, SCPlot, 'black');
+    SCplot_L= semilogx(frequencies, SCPlot_L, ':black');
     hold on;
-    DRYplot= semilogx(frequencies, DryPlot, 'red');
-    WETplot= semilogx(frequencies, WetPlot, 'blue');
+    if(stereo_plot==true)
+    SCplot_R= semilogx(frequencies, SCPlot_R, ':', 'Color', [0.1350 0.0780 0.0840]);
+    end
+
+    DRYplot_L= semilogx(frequencies, DryPlot_L, '--red');
+    if(stereo_plot==true)
+    DRYplot_R= semilogx(frequencies, DryPlot_R, '--', 'Color', [0.8350 0.0780 0.1840]);
+    end
+
+    WETplot_L= semilogx(frequencies, WetPlot_L, 'blue');
+    if(stereo_plot==true)
+    WETplot_R= semilogx(frequencies, WetPlot_R, 'Color', [0 0.4470 0.7410]);
+    end
+
     hold off;
     xlabel('frequency (Hz)');
     ylabel('dBFS');
-    legend({'SC','IN','OUT'}, 'Location','best','Orientation','vertical')    
+    if(stereo_plot==true)
+    legend({'SC_L', 'SC_R', 'IN_L', 'IN_R', 'OUT_L', 'OUT_R'}, 'Location','best','Orientation','vertical')    
+    else
+    legend({'SC_L', 'IN_L', 'OUT_L'}, 'Location','best','Orientation','vertical')    
+ 
+    end
     title('IN vs OUT');
 
 
@@ -173,15 +220,15 @@ end
 
 % --------------------- THIRD PLOT: last block's eq frequency response 
 close(fvplot);
-fvplot = fvtool([B.',[ones(1,length(A)); A].'],'FrequencyScale','log','Fs',fs, ...
+fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'],'FrequencyScale','log','Fs',fs, ...
     'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
     'Color','white');
 
 % FOURTH PLOT: threshold over time
 blocks=linspace(1,totBlocks,totBlocks);
 hmTrucation=min(300,length(blocks));
-heatmap(blocks(1,totBlocks-hmTrucation+1:end), round(fCenters), thresholdBuffer(:,totBlocks-hmTrucation+1:end));
-
+heatmap(blocks(1,totBlocks-hmTrucation+1:end), round(fCenters), thresholdBuffer_L(:,totBlocks-hmTrucation+1:end));
+title('Threshold buffer (left channel)');
 
 % Play wet signal
 soundsc(wetSignal,fs);
