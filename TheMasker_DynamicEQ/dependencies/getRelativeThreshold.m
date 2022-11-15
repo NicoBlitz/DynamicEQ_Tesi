@@ -3,6 +3,7 @@ function relative_threshold = getRelativeThreshold(blockSC_Gain, fs, fbank, spre
     % Mono conversion
 %     blockSC_Gain=mean(blockSC_Gain, 2);
     % Get Frequency Domain & decimate (in bark domain)
+    blockSC_Gain=blockSC_Gain.*hann(size(blockSC_Gain, 1));
     amplitude_ratio_barks=fbank*abs(getFD(blockSC_Gain, fs));
     
     % "Spread" the threshold

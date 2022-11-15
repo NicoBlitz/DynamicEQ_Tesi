@@ -11,7 +11,7 @@ Shared;
 
 
 %Initialize freq. response plot
-num_L=ones(3,nfilts);
+num_L=[ones(1,nfilts); zeros(2,nfilts)];
 den_L=num_L;
 fvplot = fvtool([num_L.',den_L.']);
 num_R=num_L;
@@ -31,7 +31,7 @@ totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be proce
 
 % input signals truncation at "duration"th sample
 input=input(1:duration,:);
-scInput=scInput(1:duration,:);
+scInput=scInput(1:duration,:)*0;
 
 
 % -------------------------------------------------------------------------------------
@@ -48,8 +48,7 @@ UIinGain = 0.9;
 UIscGain = 0.9;
 UIoutGain = 1.0;
 
-UIseparation = true;
-UIcompAmount = 1.0;
+UIcompAmount = 1.0; % da -1 a 1
 UIexpAmount = 1.0;
 UIatqWeight = 1.0;
 UIstereoLinked = 1.0;
@@ -62,7 +61,6 @@ UIparams = struct('gain', struct( ...
                     'eq', struct( ...
     'atq', UIatqWeight, ...  % cleanUp
     'stereolink', UIstereoLinked, ... %stereo linked
-    'sep', UIseparation, ... % switch separate
     'comp', UIcompAmount, ... % comp
     'exp', UIexpAmount, ... % exp
     'mix', UImix) ... % mix
@@ -112,9 +110,11 @@ for offset = 1:buffersize:length(input)-buffersize
     % UI separation switch
     delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule);
     
+    
+
     % Equalization
-    [wetBlock(:,1),num_L,den_L] = peakFilterEq(blockIN_Gain(:,1), delta_modulated(:,1), EQcent, EQband, myFilter, filterOrder); % Left channel EQing
-    [wetBlock(:,2),num_R,den_R] = peakFilterEq(blockIN_Gain(:,2), delta_modulated(:,2), EQcent, EQband, myFilter, filterOrder); % Right Channel EQing
+    [wetBlock(:,1),num_L,den_L] = peakFilterEq(blockIN_Gain(:,1), delta_modulated(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
+    [wetBlock(:,2),num_R,den_R] = peakFilterEq(blockIN_Gain(:,2), delta_modulated(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
     
 
     % Threshold reconstruction (current block concatenation)
