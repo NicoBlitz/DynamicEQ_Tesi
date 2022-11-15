@@ -12,10 +12,10 @@ Shared;
 
 %Initialize freq. response plot
 num_L=[ones(1,nfilts); zeros(2,nfilts)];
-den_L=num_L;
-fvplot = fvtool([num_L.',den_L.']);
+den_L=zeros(2,nfilts);
+fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].']);
 num_R=num_L;
-den_R=num_L;
+den_R=den_L;
 
 
 % Read entire files
