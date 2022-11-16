@@ -15,11 +15,11 @@ A=B;
 fvplot = fvtool([B.',A.']);
 
 % Read entire files
-input = audioread("audio\Michael Buble edit.wav");
-% input = audioread("audio\sineSweep.wav");
-scInput = audioread("audio\Michael Buble edit.wav");
-% scInput = audioread("audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
-% scInput = audioread("audio\sineSweep.wav");
+input = audioread("audio/Michael Buble edit.wav");
+% input = audioread("audio/sineSweep.wav");
+scInput = zeros(length(input),1); % no SC
+%scInput = audioread("audio/Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
+%scInput = audioread("audio/sineSweep.wav");
 % scInput = scInput(200000:end,:); % shift scInput of x samples
 
 duration= min(20000,length(input)); %take just first x samples, if x < input length
@@ -101,7 +101,7 @@ for offset = 1:buffersize:length(input)-buffersize
     delta = input_Freq_dB - threshold;
     
     % UI separation switch
-    delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule);
+    delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule, "sech");
     
     % Equalization
     [wetBlock,B,A] = peakFilterEq(blockIN_Gain, delta_modulated, EQcent, EQband, myFilter, filterOrder);

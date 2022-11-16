@@ -24,7 +24,7 @@ spreadingfunctionmatrix = spreadingFunctionMatrix(maxfreq, nfilts, spread_exp);
 
 %Absolute threshold in quiet variables
 min_dbFS=-64; % minimum dBFS (used by ATQ)
-ATQ_lift=0.4; % scales the ATQ: the higher the value, the higher the threshold in quiet
+ATQ_lift=1; % scales the ATQ: the higher the value, the higher the threshold in quiet
 
 
 % PeakEQFilter variables
@@ -32,7 +32,7 @@ myFilter = dsp.BiquadFilter( ...
     SOSMatrixSource="Input port", ...
     ScaleValuesInputPort=false);
 filterOrder = 2;
-maxGainModule=20;
+maxGainModule=10;
 
 % "Q" calculation (necessary for designParamEQ() )
 octaves=(hz2st(maxfreq)-hz2st(minfreq))/12;
