@@ -117,7 +117,7 @@ for offset = 1:buffersize:length(input)-buffersize
     [wetBlock(:,1), num_L, den_L] = peakFilterEq(blockIN_Gain(:,1), delta_modulated(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
     [wetBlock(:,2), num_R, den_R] = peakFilterEq(blockIN_Gain(:,2), delta_modulated(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
     
-
+    
     % Threshold reconstruction (current block concatenation)
     thresholdBuffer_L(:,blockNumber)=threshold(:,1);
     thresholdBuffer_R(:,blockNumber)=threshold(:,2);
