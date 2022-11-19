@@ -1,27 +1,23 @@
 
 
-function delta_modulated = modulateDelta(delta, parameters, maxGainModule, smoothingType)
+function delta = modulateDelta(delta_raw, parameters, maxGainModule)
     
-    % Invert delta according to UIseparation (invert if false)
-    if (parameters.sep==false) 
-    delta=delta*(-1);
-    end
-
-    delta(delta>=0,:)=delta(delta>=0)*parameters.exp;   % Multiply positive deltas by UIexpAmount
-    delta(delta<0,:)=delta(delta<0)*parameters.comp; % Multiply negative deltas by UIcompAmount
-
-    %partially hardcoded under here :) 
-    if(smoothingType=="sigm")
-    medianDeltaValue = max(delta)/2;
-    delta = (tanh(delta/medianDeltaValue))*medianDeltaValue; % sigmoid to smooth value
-    end
+    delta_mono=mean(delta_raw,2); 
+    delta(:,1)=parameters.stereolink*delta_mono+(1-parameters.stereolink)*delta_raw(:,1); % StereoLinked modulation L
+    delta(:,2)=parameters.stereolink*delta_mono+(1-parameters.stereolink)*delta_raw(:,2); %StereoLinked modulation R
     
-    if(smoothingType=="sech")
-    delta = delta .* sech((delta/10).^2);
-    end
+    delta(delta>=0)=delta(delta>=0)*parameters.exp;   % Multiply positive deltas by UIexpAmount
+    delta(delta<0)=delta(delta<0)*parameters.comp; % Multiply negative deltas by UIcompAmount
+    
+    % sigmoide che fa da gater al delta(alle singole bande?)
 
 
-    delta_modulated=delta*parameters.mix; % Multiply by UImix
+      % giù, per ultimo
+
+
+    delta=delta*parameters.mix; % Multiply by UImix
+    delta(delta>maxGainModule)=maxGainModule; % clips deltas over +20 dB
+    delta(delta<-maxGainModule)=-maxGainModule; % clips deltas below -20 dB
 end
 
 
