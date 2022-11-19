@@ -9,6 +9,11 @@ addpath(genpath(folder));
 % Creates constant variables
 Shared;
 
+% Internal temp variables
+stereo_plot = true;
+duration = 20000;
+sc_shift = 200000;
+th_buffer_plot_duration = 300;
 
 %Initialize freq. response plot
 num_L=[ones(1,nfilts); zeros(2,nfilts)];
@@ -24,14 +29,14 @@ input = audioread("audio\Michael Buble edit.wav");
 scInput = audioread("audio\Michael Buble edit.wav");
 % scInput = audioread("audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
 % scInput = audioread("audio\sineSweep.wav");
-% scInput = scInput(200000:end,:); % shift scInput of x samples
+% scInput = scInput(sc_shift:end,:); % shift scInput of x samples
 
-duration= min(20000,length(input)); %take just first x samples, if x < input length
+duration= min(duration,length(input)); %take just first x samples, if x < input length
 totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be processed
 
 % input signals truncation at "duration"th sample
 input=input(1:duration,:);
-scInput=scInput(1:duration,:)*0;
+scInput=scInput(1:duration,:);
 
 
 % -------------------------------------------------------------------------------------
@@ -75,8 +80,6 @@ ATQ_scaled = scaleATQ(ATQ_decimated, UIparams.eq.atq, ATQ_lift, min_dbFS);
 % Create main plot
 figure;
 
-stereo_plot=false;
-
 blockNumber=1;
 
 % --------------------------------------------------------------------------------
@@ -94,15 +97,13 @@ for offset = 1:buffersize:length(input)-buffersize
     blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc;
     
     % Calculate block's threshold depending on our psychoacoustic model  
-    relative_threshold(:,1)= getRelativeThreshold(blockSC_Gain(:,1), fs, fbank, spreadingfunctionmatrix); % Left channel rel. threshold
-    relative_threshold(:,2)= getRelativeThreshold(blockSC_Gain(:,2), fs, fbank, spreadingfunctionmatrix); % Right channel rel. threshold
+    relative_threshold= getRelativeThreshold(blockSC_Gain, fs, fbank, spreadingfunctionmatrix); % Left channel rel. threshold
 
     % Comparing with relative and absolute threshold
     threshold = max(relative_threshold, ATQ_scaled);
 
     % Input frequency domain and decimation
-    input_Freq_dB(:,1) = getMagnitudeFD(blockIN_Gain(:,1), fs, fbank); % Left channel input fd and decimation
-    input_Freq_dB(:,2) = getMagnitudeFD(blockIN_Gain(:,2), fs, fbank); % Right channel input fd and decimation
+    input_Freq_dB = getMagnitudeFD(blockIN_Gain, fs, nfilts, fbank); % Left channel input fd and decimation
 
     % Getting delta
     delta = input_Freq_dB - threshold;
@@ -113,8 +114,8 @@ for offset = 1:buffersize:length(input)-buffersize
     
 
     % Equalization
-    [wetBlock(:,1),num_L,den_L] = peakFilterEq(blockIN_Gain(:,1), delta_modulated(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
-    [wetBlock(:,2),num_R,den_R] = peakFilterEq(blockIN_Gain(:,2), delta_modulated(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
+    [wetBlock(:,1), num_L, den_L] = peakFilterEq(blockIN_Gain(:,1), delta_modulated(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
+    [wetBlock(:,2), num_R, den_R] = peakFilterEq(blockIN_Gain(:,2), delta_modulated(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
     
 
     % Threshold reconstruction (current block concatenation)
@@ -125,14 +126,13 @@ for offset = 1:buffersize:length(input)-buffersize
     wetSignal(offset:blockEnd,:)= wetBlock * UIparams.gain.out;
     
     % PLOT PREPARATION
-    DryPlot_L= getMagnitudeFD(blockIN_Gain(:,1), fs); % No decimation
-    DryPlot_R= getMagnitudeFD(blockIN_Gain(:,2), fs); % No decimation
+    DryPlot= getMagnitudeFD(blockIN_Gain, fs, nfilts); % No decimation
 
-    SCPlot_L= getMagnitudeFD(blockSC_Gain(:,1), fs); % No decimation
-    SCPlot_R= getMagnitudeFD(blockSC_Gain(:,2), fs); % No decimation
 
-    WetPlot_L= getMagnitudeFD(wetBlock(:,1), fs); % No decimation
-    WetPlot_R= getMagnitudeFD(wetBlock(:,2), fs); % No decimation
+    SCPlot= getMagnitudeFD(blockSC_Gain, fs, nfilts); % No decimation
+
+
+    WetPlot= getMagnitudeFD(wetBlock, fs, nfilts); % No decimation
 
  
     % ----------------- FIRST PLOT:  
@@ -158,7 +158,6 @@ for offset = 1:buffersize:length(input)-buffersize
     deltaPlot_R= bar(fCenters, delta_modulated(:,2), 'r');
     end
 
-%     deltaNEGplot= bar(fCenters, min(delta_modulated(:,1),0), 'm');
     
     hold off;
 
@@ -178,20 +177,20 @@ for offset = 1:buffersize:length(input)-buffersize
 
     % --------------- SECOND PLOT: IN vs OUT
     subplot(1,2,2);
-    SCplot_L= semilogx(frequencies, SCPlot_L, ':black');
+    SCplot_L= semilogx(frequencies, SCPlot(:,1), ':black');
     hold on;
     if(stereo_plot==true)
-    SCplot_R= semilogx(frequencies, SCPlot_R, ':', 'Color', [0.1350 0.0780 0.0840]);
+    SCplot_R= semilogx(frequencies, SCPlot(:,2), ':', 'Color', [0.1350 0.0780 0.0840]);
     end
 
-    DRYplot_L= semilogx(frequencies, DryPlot_L, '--red');
+    DRYplot_L= semilogx(frequencies, DryPlot(:,1), '--red');
     if(stereo_plot==true)
-    DRYplot_R= semilogx(frequencies, DryPlot_R, '--', 'Color', [0.8350 0.0780 0.1840]);
+    DRYplot_R= semilogx(frequencies, DryPlot(:,2), '--', 'Color', [0.8350 0.0780 0.1840]);
     end
 
-    WETplot_L= semilogx(frequencies, WetPlot_L, 'blue');
+    WETplot_L= semilogx(frequencies, WetPlot(:,1), 'blue');
     if(stereo_plot==true)
-    WETplot_R= semilogx(frequencies, WetPlot_R, 'Color', [0 0.4470 0.7410]);
+    WETplot_R= semilogx(frequencies, WetPlot(:,2), 'Color', [0 0.4470 0.7410]);
     end
 
     hold off;
@@ -226,7 +225,7 @@ fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'],'FrequencyScale','log
 
 % FOURTH PLOT: threshold over time
 blocks=linspace(1,totBlocks,totBlocks);
-hmTrucation=min(300,length(blocks));
+hmTrucation=min(th_buffer_plot_duration,totBlocks);
 heatmap(blocks(1,totBlocks-hmTrucation+1:end), round(fCenters), thresholdBuffer_L(:,totBlocks-hmTrucation+1:end));
 title('Threshold buffer (left channel)');
 
