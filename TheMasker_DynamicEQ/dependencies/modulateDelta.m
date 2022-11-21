@@ -10,6 +10,8 @@ function delta_modulated = modulateDelta(delta, parameters, maxGainModule, smoot
     delta(delta>=0,:)=delta(delta>=0)*parameters.exp;   % Multiply positive deltas by UIexpAmount
     delta(delta<0,:)=delta(delta<0)*parameters.comp; % Multiply negative deltas by UIcompAmount
 
+    %{
+
     %partially hardcoded under here :) 
     if(smoothingType=="sigm")
     medianDeltaValue = max(delta)/2;
@@ -19,6 +21,8 @@ function delta_modulated = modulateDelta(delta, parameters, maxGainModule, smoot
     if(smoothingType=="sech")
     delta = delta .* sech((delta/10).^2);
     end
+
+    %}
 
 
     delta_modulated=delta*parameters.mix; % Multiply by UImix

@@ -17,13 +17,17 @@ fvplot = fvtool([B.',A.']);
 % Read entire files
 input = audioread("audio/Michael Buble edit.wav");
 % input = audioread("audio/sineSweep.wav");
-scInput = zeros(length(input),1); % no SC
 %scInput = audioread("audio/Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
 %scInput = audioread("audio/sineSweep.wav");
-% scInput = scInput(200000:end,:); % shift scInput of x samples
+scInput = input(200000:end,:); % shift scInput of x samples
 
 duration= min(20000,length(input)); %take just first x samples, if x < input length
 totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be processed
+
+%check if scInput exists
+if(exist('scInput','var') == false)
+    scInput = zeros(length(input),1);
+end
 
 % input signals truncation at "duration"th sample
 input=input(1:duration,:);
@@ -99,9 +103,13 @@ for offset = 1:buffersize:length(input)-buffersize
     
     % Getting delta
     delta = input_Freq_dB - threshold;
+
+    %clipping threshold
+    THclip = ((1+tanh(((threshold+40)/(10))))/(2));
+    delta_modulated = delta .* THclip;
     
     % UI separation switch
-    delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule, "sech");
+    delta_modulated = modulateDelta(delta_modulated, UIparams.eq, maxGainModule, "sech");
     
     % Equalization
     [wetBlock,B,A] = peakFilterEq(blockIN_Gain, delta_modulated, EQcent, EQband, myFilter, filterOrder);
@@ -136,18 +144,17 @@ for offset = 1:buffersize:length(input)-buffersize
     deltaNEGplot= bar(fCenters, min(delta_modulated,0), 'm', 'BarWidth', 1);
     
     % Plot wet and gain reduction signal
-%     OUTplot= semilogx(fCenters, wetBlock_Freq_dB, 'Color', wetColor);
-%     GRplot= semilogx(fCenters, gainReduction, 'red');
+    % OUTplot= semilogx(fCenters, wetBlock_Freq_dB, 'Color', wetColor);
+    % GRplot= semilogx(fCenters, gainReduction, 'red');
     hold off;
 
-    % Plot's title and legend
+    %Plot's title and legend
     xlabel('frequency (Hz)');
     ylabel('dBFS');
     legend({'Input', 'ATQ', 'Threshold', 'Delta+', 'Delta-'}, ...
         'Location','best','Orientation','vertical');
     title('DynamicEQ values');
-
-   
+    
 
     % SECOND PLOT: IN vs OUT
     subplot(1,2,2);
