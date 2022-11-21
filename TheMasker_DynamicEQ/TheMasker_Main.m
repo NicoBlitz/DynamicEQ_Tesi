@@ -10,10 +10,10 @@ addpath(genpath(folder));
 Shared;
 
 % Internal temp variables
-stereo_plot = true;
-duration = 20000;
-sc_shift = 200000;
-th_buffer_plot_duration = 300;
+stereo_plot = false;
+duration = 200000;
+sc_shift = 400000;
+th_buffer_max_plot_duration = 200;
 
 %Initialize freq. response plot
 num_L=[ones(1,nfilts); zeros(2,nfilts)];
@@ -26,10 +26,9 @@ den_R=den_L;
 % Read entire files
 input = audioread("audio\Michael Buble edit.wav");
 % input = audioread("audio\sineSweep.wav");
-scInput = audioread("audio\Michael Buble edit.wav");
+% scInput = audioread("audio\Michael Buble edit.wav");
 % scInput = audioread("audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
-% scInput = audioread("audio\sineSweep.wav");
-% scInput = scInput(sc_shift:end,:); % shift scInput of x samples
+scInput = audioread("audio\sineSweep.wav"); scInput = scInput(sc_shift:end,:); % shift scInput of x samples
 
 duration= min(duration,length(input)); %take just first x samples, if x < input length
 totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be processed
@@ -56,7 +55,7 @@ UIoutGain = 1.0;
 UIcompAmount = 1.0; % da -1 a 1
 UIexpAmount = 1.0;
 UIatqWeight = 1.0;
-UIstereoLinked = 1.0;
+UIstereoLinked = 0.0;
 UImix= 1.0;
 
 UIparams = struct('gain', struct( ...
@@ -108,11 +107,13 @@ for offset = 1:buffersize:length(input)-buffersize
     % Getting delta
     delta = input_Freq_dB - threshold;
     
-    % UI separation switch
-    delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule);
-    
-    
+    % Set delta to zero when threshold (sidechain signal) is under dGating_thresh value, with a knee of dGating_knee (both in positive and negative direction)
+    THclip = (1+tanh((threshold-dGating_thresh)/dGating_knee))/2;
+    delta_adjust = delta .* THclip;
 
+    % UI modulations
+    delta_modulated = modulateDelta(delta_adjust, UIparams.eq, maxGainModule); % to clip the delta, add maxGainModule as a third parameter
+    
     % Equalization
     [wetBlock(:,1), num_L, den_L] = peakFilterEq(blockIN_Gain(:,1), delta_modulated(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
     [wetBlock(:,2), num_R, den_R] = peakFilterEq(blockIN_Gain(:,2), delta_modulated(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
@@ -153,10 +154,15 @@ for offset = 1:buffersize:length(input)-buffersize
     THplot_R= semilogx(fCenters, threshold(:,2), '--', 'Color', [0.9350 0.0780 0.1840]);
     end
     % Plot delta negative and positive.
-    deltaPlot_L= bar(fCenters, delta_modulated(:,1), 'b');
-    if(stereo_plot==true)
-    deltaPlot_R= bar(fCenters, delta_modulated(:,2), 'r');
-    end
+%     deltaPlot_L= bar(fCenters, delta_modulated(:,1), 'b');
+%     if(stereo_plot==true)
+%     deltaPlot_R= bar(fCenters, delta_modulated(:,2), 'r');
+%     end
+    DLT_RAWplot = semilogx(fCenters, delta(:,1), ':black');
+    DLT_NCplot = semilogx(fCenters, delta_adjust(:,1), '--blue');
+    DLTplot = semilogx(fCenters, delta_modulated(:,1), 'red');
+
+
 
     
     hold off;
@@ -168,7 +174,7 @@ for offset = 1:buffersize:length(input)-buffersize
     legend({'Input_L', 'Input_R', 'ATQ', 'Threshold_L', 'Threshold_R', 'Delta_L', 'Delta_R'}, ...
         'Location','best','Orientation','vertical');
     else 
-    legend({'Input_L', 'ATQ', 'Threshold_L', 'Delta_L'}, ...
+    legend({'Input_L', 'ATQ', 'Threshold_L', 'Delta raw', 'Delta not clipped', 'Delta_L'}, ...
     'Location','best','Orientation','vertical');
     end
     title('DynamicEQ values');
@@ -225,7 +231,7 @@ fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'],'FrequencyScale','log
 
 % FOURTH PLOT: threshold over time
 blocks=linspace(1,totBlocks,totBlocks);
-hmTrucation=min(th_buffer_plot_duration,totBlocks);
+hmTrucation=min(th_buffer_max_plot_duration,totBlocks);
 heatmap(blocks(1,totBlocks-hmTrucation+1:end), round(fCenters), thresholdBuffer_L(:,totBlocks-hmTrucation+1:end));
 title('Threshold buffer (left channel)');
 

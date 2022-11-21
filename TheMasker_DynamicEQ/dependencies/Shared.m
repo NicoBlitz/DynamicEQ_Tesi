@@ -26,6 +26,11 @@ spreadingfunctionmatrix = spreadingFunctionMatrix(maxfreq, nfilts, spread_exp);
 min_dbFS=-64; % minimum dBFS (used by ATQ)
 ATQ_lift=1.6; % scales the ATQ: the higher the value, the higher the threshold in quiet
 
+% Delta modulation variables
+maxGainModule=20;
+dGating_thresh = -40; % in dBFS
+dGating_knee = 10; % in dB
+
 
 % PeakEQFilter variables
 myFilter_L = dsp.BiquadFilter( ...
@@ -36,8 +41,6 @@ myFilter_R = dsp.BiquadFilter( ...
     ScaleValuesInputPort=false);
 
 filterOrder = 2;
-maxGainModule=20;
-% fare nfilts filters 
 
 % "Q" calculation (necessary for designParamEQ() )
 octaves=(hz2st(maxfreq)-hz2st(minfreq))/12;
@@ -53,7 +56,7 @@ end
 
 
 
-%Plot syle variables
+% Plot syle variables
 wetStr = '#00a36d';
 wetColor = sscanf(wetStr(2:end),'%2x%2x%2x',[1 3])/255;
 
