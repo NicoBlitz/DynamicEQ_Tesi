@@ -1,10 +1,8 @@
 function [equalizedSignal,b_coeff,a_coeff] = peakFilterEq(originalSignal, delta, EQcent, EQband, myFilter, filterOrder, B_old, A_old)
     
-    
-    % interpolazione tra 
     equalizedSignal=originalSignal;
     buffDim=size(originalSignal,1);
-    [B,A] = designParamEQ(filterOrder, delta.', EQcent, EQband, 'sos', "Orientation","column");
+    [B,A] = designParamEQ(filterOrder, delta.', EQcent, EQband, "Orientation","column");
     for s=1:buffDim
     w=s/buffDim;
     b_coeff=B*w + B_old*(1-w);

@@ -13,8 +13,9 @@ minbark=hz2bark(minfreq);
 step_bark = (maxbark-minbark)/(nfft-1);
 barks=minbark:step_bark:maxbark;
 frequencies=bark2hz(barks); % frequency (Hz) array (dimension 1 x nfft)
-[ fbank, cent ] = getfbank( frequencies, 'auto', 'bark', @triang, nfilts ); % Decimation filter bank
-fCenters=bark2hz(cent); % frequency (Hz) array (dimension 1 x nfilts)
+[ fbank, cent ] = getfbank( frequencies,'bark', nfilts, [], 'tri'); % Decimation filter bank
+% fCenters=bark2hz(cent); % frequency (Hz) array (dimension 1 x nfilts)
+fCenters = cent; % frequency (Hz) array (dimension 1 x nfilts)
 
 
 % Spreading function
@@ -45,8 +46,10 @@ filterOrder = 2;
 % "Q" calculation (necessary for designParamEQ() )
 octaves=(hz2st(maxfreq)-hz2st(minfreq))/12;
 bw_oct=octaves/nfilts;
-Q=sqrt(2^(bw_oct))/(2^bw_oct-1)/2; %definire empiricamente
-
+% Q=sqrt(2^(bw_oct))/(2^bw_oct-1)/2; %definire empiricamente
+% Q=1.8*ones(1,nfilts);
+% Q(1)=4;
+Q= 2.7;
 % Frequency centers and bands normalized from 0 to 1, where 1 is nyquist frequency (necessary for designParamEQ() )
 EQcent=fCenters/nyquistFreq;
 EQband=zeros(1,nfilts);

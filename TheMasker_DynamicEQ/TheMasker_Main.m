@@ -11,7 +11,7 @@ Shared;
 
 % Internal temp variables
 stereo_plot = false;
-duration = 200000;
+duration = 20000;
 sc_shift = 400000;
 th_buffer_max_plot_duration = 200;
 
@@ -26,9 +26,9 @@ den_R=den_L;
 % Read entire files
 input = audioread("audio\Michael Buble edit.wav");
 % input = audioread("audio\sineSweep.wav");
-% scInput = audioread("audio\Michael Buble edit.wav");
+scInput = audioread("audio\Michael Buble edit.wav");
 % scInput = audioread("audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav");
-scInput = audioread("audio\sineSweep.wav"); scInput = scInput(sc_shift:end,:); % shift scInput of x samples
+% scInput = audioread("audio\sineSweep.wav"); scInput = scInput(sc_shift:end,:); % shift scInput of x samples
 
 duration= min(duration,length(input)); %take just first x samples, if x < input length
 totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be processed
@@ -109,7 +109,10 @@ for offset = 1:buffersize:length(input)-buffersize
     
     % Set delta to zero when threshold (sidechain signal) is under dGating_thresh value, with a knee of dGating_knee (both in positive and negative direction)
     THclip = (1+tanh((threshold-dGating_thresh)/dGating_knee))/2;
+    %INclip = (1+tanh((input_Freq_dB-dGating_thresh)/dGating_knee))/2;
+
     delta_adjust = delta .* THclip;
+%     delta_adjust = delta_adjust .* INclip; 
 
     % UI modulations
     delta_modulated = modulateDelta(delta_adjust, UIparams.eq, maxGainModule); % to clip the delta, add maxGainModule as a third parameter
@@ -213,10 +216,10 @@ for offset = 1:buffersize:length(input)-buffersize
 
     % --------------- THIRD PLOT: temporary eq frequency response (uncommenting will slow down execution)
 %     close(fvplot);
-%     fvplot = fvtool([B.',[ones(1,length(A)); A].'],'FrequencyScale','log','Fs',fs, ...
+%     fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'], 'FrequencyScale','log','Fs',fs, ...
 %         'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
 %         'Color','white');
-
+%     
 
     % Increment block number
     blockNumber=blockNumber+1;
