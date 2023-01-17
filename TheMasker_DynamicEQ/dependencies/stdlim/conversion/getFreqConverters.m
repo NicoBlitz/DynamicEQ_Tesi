@@ -28,7 +28,7 @@ function [ f2x, x2f, fe ] = getFreqConverters( tgt, F )
         case 'hz'
             f2x = @(x) x; x2f = @(x) x;
         otherwise
-            error(['Unsupported scale type: ', scale]);
+%             error(['Unsupported scale type: ', scale]);
     end
 end
 

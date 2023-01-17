@@ -1,5 +1,6 @@
 function [equalizedSignal,b_coeff,a_coeff] = peakFilterEq(originalSignal, delta, EQcent, EQband, myFilter, filterOrder, B_old, A_old)
     
+    
     equalizedSignal=originalSignal;
     buffDim=size(originalSignal,1);
     [B,A] = designParamEQ(filterOrder, delta.', EQcent, EQband, "Orientation","column");

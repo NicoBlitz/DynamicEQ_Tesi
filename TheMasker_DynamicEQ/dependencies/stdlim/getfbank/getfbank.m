@@ -1,4 +1,4 @@
-function [ fbank, bcen ] = getfbank( F, scale, nb, bw, wType, trans )
+function [ fbank, bcen ] = getfbank( F, scale, nb, bwt, wType, trans ) %#codegen
 %GETFILTERBANK returns a filterbank with given properties
 %
 %[ fbank, bcen ] = GETFILTERBANK( F )
@@ -41,34 +41,36 @@ function [ fbank, bcen ] = getfbank( F, scale, nb, bw, wType, trans )
 % See also GETFD, GETTD, RESCALEFREQ, GETFREQCONVERTERS
 
     if nargin == 0, F = 0:80:20479; end
-
+    scale='';
     %   scale: 'mel', 'bark', 'erbs', 'semitone', 'hz', 'log' 
     if nargin < 2, scale = 'mel'; end
     if nargin < 3, nb = []; end
-    if nargin < 4, bw = []; end
+    if nargin < 4, bwt = []; end
     if nargin < 5, wType = 'tri'; end
     if nargin < 6, trans = 1; end
 
     if any(diff(F)<=0), error('F must be a monotonically increasing array'); end
 
-    [f2x, x2f, first_el] = getFreqConverters(scale, F);
-
+%     [f2x, x2f, first_el] = getFreqConverters(scale, F);
+    f2x=@hz2bark;
+    x2f=@bark2hz;
+    first_el=1;
     low  = f2x(F(first_el));
     high = f2x(F(end));
 
-    if isempty(nb)
-        if isempty(bw)
-            nb = getErbEqNb(F, f2x);
-        else
-            nb = (high-low)/bw - 1;
-        end
-
-        nb = max(1, round(nb));
-    end
+%     if isempty(nb)
+%         if isempty(bw)
+%             nb = getErbEqNb(F, f2x);
+%         else
+%             nb = (high-low)/bw - 1;
+%         end
+% 
+%         nb = max(1, round(nb));
+%     end
 
     bhop = (high-low)/(nb+1);
 
-    if isempty(bw), bw = bhop; end
+    if isempty(bwt), bw = bhop; end
 
     %olap = bw >= bhop;
     olap = true;
@@ -89,13 +91,13 @@ function [ fbank, bcen ] = getfbank( F, scale, nb, bw, wType, trans )
 
     wfun = @(x) x;
 
-    switch wType
-        case 'cos'
-            wfun = @(x) (0.5*(1-cos(pi*x)));
-        case 'pow'
-            wfun = @(x) (sqrt(x));
-        otherwise
-    end
+%     switch wType
+%         case 'cos'
+%             wfun = @(x) (0.5*(1-cos(pi*x)));
+%         case 'pow'
+%             wfun = @(x) (sqrt(x));
+%         otherwise
+%     end
 
     m = 1/max(eps,trans);
 
@@ -117,21 +119,21 @@ end
 
 %% -------------------------------------
 
-function nb = getErbEqNb(F, f2x)
-% Thanks Marco for the clever idea
-    if F(1) <= 0
-        lb = F(2);
-    else
-        lb = F(1);
-    end
-    ub = F(end);
-    f = 10.^(linspace(log10(lb),log10(ub),1024));
-    XERB = f2x([ f-hz2ERB(f)/2 ; f+hz2ERB(f)/2 ]);
-    XERBbwdth = XERB(2,:)-XERB(1,:);
-    bw = mean(XERBbwdth);
-%     nb = 2*(f2x(ub)-f2x(lb))/bw - 1;
-    nb = (f2x(ub)-f2x(lb))/bw - 1;
-end
+% function nb = getErbEqNb(F, f2x)
+% % Thanks Marco for the clever idea
+%     if F(1) <= 0
+%         lb = F(2);
+%     else
+%         lb = F(1);
+%     end
+%     ub = F(end);
+%     f = 10.^(linspace(log10(lb),log10(ub),1024));
+%     XERB = f2x([ f-hz2ERB(f)/2 ; f+hz2ERB(f)/2 ]);
+%     XERBbwdth = XERB(2,:)-XERB(1,:);
+%     bw = mean(XERBbwdth);
+% %     nb = 2*(f2x(ub)-f2x(lb))/bw - 1;
+%     nb = (f2x(ub)-f2x(lb))/bw - 1;
+% end
 
 function indx = findx(X, val)
     X = abs(X-val); 

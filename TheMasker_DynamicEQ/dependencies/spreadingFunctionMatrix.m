@@ -1,5 +1,5 @@
 
-function spreadingfuncmatrix = spreadingFunctionMatrix(maxfreq,nfilts,alpha_exp)
+function spreadingfuncmatrix = spreadingFunctionMatrix(maxfreq,nfilts,alpha_exp) %#codegen
      %Arguments: maxfreq: half the sampling frequency
      %nfilts: Number of subbands in the Bark domain, for instance 64
      fadB= 14.5+12; % Simultaneous masking for tones at Bark band 12
