@@ -1,5 +1,7 @@
 function relative_threshold = getRelativeThreshold(blockSC_Gain, fs, fbank, spreadingFunctionMatrix)
     numChannels=size(blockSC_Gain,2);
+    amplitude_ratio_barks=zeros(size(fbank,1),numChannels);
+    relative_threshold=zeros(size(fbank,1),numChannels);
     for ch=1:numChannels
         % Get Frequency Domain & decimate (in bark domain)
         blockSC_Gain(:,ch)=blockSC_Gain(:,ch).*hann(size(blockSC_Gain, 1));
