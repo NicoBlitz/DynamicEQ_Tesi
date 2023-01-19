@@ -17,28 +17,53 @@ num_R=num_L;
 den_R=den_L;
 
 % Internal plotting variables
+blockByBlock_switch=true;
+saveFile=true;
 stereo_plot = false;
-step_block=15;
-duration = 20000000;
-sc_shift = 40000;
+scShift_switch=true; sc_shift = 40000;
+doubleSine_switch=true; doubleSine_shift = 150000;
+wholeFile_switch=true;
+step_block=15; 
+duration = 2000000;
+
 th_buffer_max_plot_duration = 200;
-doubleSine_shift=150000;
-doubleSine_switch=true;
+
+if(blockByBlock_switch)
+saveFile=false;
+end
+
+if(saveFile) 
+    step_block=1; 
+    blockByBlock_switch=false;
+    wholeFile_switch=true;
+    scShift_switch=false;
+    th_buffer_max_plot_duration = 1000;
+
+end
+
 
 % Files reading
 michael= "audio\Michael Buble edit.wav";
 sweep="audio\sineSweep.wav";
-whiteN="audio\whiteNoise.wav";
+whiteN="audio\whiteNoise_long.wav";
 pinkN="audio\pink noise.wav";
 buzz="audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav";
 input = audioread(whiteN);
 scInput = audioread(sweep);
+
+if(scShift_switch)
 scInput = scInput(sc_shift:end,:); % shift scInput of x samples
+end
 if(doubleSine_switch)
 scInput= scInput(1:(end-doubleSine_shift+1),:)+scInput(doubleSine_shift:end,:); 
 end
+if(not(wholeFile_switch))
 duration= min(duration,length(input)); %take just first x samples, if x < input length
-totBlocks=ceil(duration/buffersize)-1; % calculate how many blocks will be processed
+duration= min(duration,length(scInput)); %take just first x samples, if x < scInput length
+else
+duration= min(length(input),length(scInput));
+end
+totBlocks=ceil(duration/(buffersize*step_block))-1; % calculate how many blocks will be processed
 
 % input signals truncation at "duration"th sample
 input=input(1:duration,:);
@@ -100,7 +125,7 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
   
     % Shift among samples and multiply by Input and Sidechain's UI Gain 
     blockIN_Gain = input(offset:blockEnd,:) * UIparams.gain.in;
-    blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc / spread_exp * 2;
+    blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc  * 3; % / spread_exp
     
     % Calculate block's threshold depending on our psychoacoustic model  
     relative_threshold= getRelativeThreshold(blockSC_Gain, fs, fbank, spreadingfunctionmatrix); % Left channel rel. threshold
@@ -121,13 +146,13 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
       % UI modulations
     delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule); % to clip the delta, add maxGainModule as a third parameter
    
-    delta_adjust = delta_modulated .* THclip;
+    delta_clipped = delta_modulated .* THclip;
 %     delta_adjust = delta_adjust .* INclip; 
 
    
     % Equalization
-    [wetBlock(:,1), num_L, den_L] = peakFilterEq(blockIN_Gain(:,1), delta_adjust(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
-    [wetBlock(:,2), num_R, den_R] = peakFilterEq(blockIN_Gain(:,2), delta_adjust(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
+    [wetBlock(:,1), num_L, den_L] = peakFilterEq(blockIN_Gain(:,1), delta_clipped(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
+    [wetBlock(:,2), num_R, den_R] = peakFilterEq(blockIN_Gain(:,2), delta_clipped(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
     
     
     % Threshold reconstruction (current block concatenation)
@@ -140,9 +165,7 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     % PLOT PREPARATION
     DryPlot= getMagnitudeFD(blockIN_Gain, fs, nfilts); % No decimation
 
-
     SCPlot= getMagnitudeFD(blockSC_Gain, fs, nfilts); % No decimation
-
 
     WetPlot= getMagnitudeFD(wetBlock, fs, nfilts); % No decimation
 
@@ -171,7 +194,7 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
 %     end
     DLT_RAWplot = semilogx(fCenters, delta(:,1), ':black');
     DLT_NCplot = semilogx(fCenters, delta_modulated(:,1), '--magenta');
-    DLTplot = semilogx(fCenters, delta_adjust(:,1), 'red');
+    DLTplot = semilogx(fCenters, delta_clipped(:,1), 'red');
 
 
 
@@ -185,7 +208,7 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     legend({'Input_L', 'Input_R', 'ATQ', 'Threshold_L', 'Threshold_R', 'Delta_L', 'Delta_R'}, ...
         'Location','southoutside','Orientation','vertical');
     else 
-    legend({'Input_L', 'ATQ', 'Threshold_L', 'Delta raw', 'Delta not clipped', 'Delta_L'}, ...
+    legend({'Input_L', 'ATQ', 'Threshold_L', 'Delta raw_L', 'Delta modulated_L', 'Delta clipped_L'}, ...
     'Location','southoutside','Orientation','vertical');
     end
     title('DynamicEQ values');
@@ -222,16 +245,17 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     title('IN vs OUT');
 
 
-   % --------------- THIRD PLOT: temporary eq frequency response (uncommenting will slow down execution)
+   % --------------- THIRD PLOT: current block's eq frequency response (will slow down execution)
+   if(blockByBlock_switch)
     close(fvplot);
     fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'], 'FrequencyScale','log','Fs',fs, ...
         'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
         'Color','white');
-    
+    dbstop in TheMasker_Main.m at 253 if blockByBlock_switch;
+   end
 
     % Increment block number
     blockNumber=blockNumber+1;
-
 end
 
 % --------------------- THIRD PLOT: last block's eq frequency response 
@@ -248,6 +272,12 @@ title('Threshold buffer (left channel)');
 
 % Play wet signal
 soundsc(wetSignal,fs);
-
+if (saveFile) 
+    if (doubleSine_switch) 
+    audiowrite("exports\whiteNoise+DoubleSine\output_doubleSine.wav",wetSignal,fs);
+    else
+    audiowrite("exports\whiteNoise+Sine\output_sine.wav",wetSignal,fs);
+    end
+end
  
 
