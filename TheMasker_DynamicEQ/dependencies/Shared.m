@@ -1,6 +1,6 @@
 
 fs=44100;  % sampling frequency of audio signal
-buffersize=1024;
+buffersize=4096;
 nfft=buffersize/2;  %number of fft subbands
 nfilts=32;  %number of subbands in the bark domain
 nyquistFreq = fs/2; 
@@ -47,14 +47,18 @@ filterOrder = 2;
 octaves=(hz2st(maxfreq)-hz2st(minfreq))/12;
 bw_oct=octaves/nfilts;
 % Q=sqrt(2^(bw_oct))/(2^bw_oct-1)/2; %definire empiricamente
-% Q=1.8*ones(1,nfilts);
+
 % Q(1)=4;
-Q= 2.7;
+% Q= 2.7;
+q_range=2;
+q_min=0.4;
+q_exp=0.4;
+Q=(linspace(0,1,nfilts).^q_exp)*q_range+q_min;
 % Frequency centers and bands normalized from 0 to 1, where 1 is nyquist frequency (necessary for designParamEQ() )
 EQcent=fCenters/nyquistFreq;
 EQband=zeros(1,nfilts);
 for i=1:nfilts  
-    EQband(i)=EQcent(i)/Q;
+    EQband(i)=EQcent(i)/Q(i);
 end
 
 

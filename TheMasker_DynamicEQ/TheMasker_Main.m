@@ -20,10 +20,10 @@ den_R=den_L;
 blockByBlock_switch=true;
 saveFile=true;
 stereo_plot = false;
-scShift_switch=true; sc_shift = 40000;
+scShift_switch=true; sc_shift = 120000;
 doubleSine_switch=true; doubleSine_shift = 150000;
 wholeFile_switch=true;
-step_block=15; 
+step_block=40; 
 duration = 2000000;
 
 th_buffer_max_plot_duration = 200;
@@ -38,7 +38,6 @@ if(saveFile)
     wholeFile_switch=true;
     scShift_switch=false;
     th_buffer_max_plot_duration = 1000;
-
 end
 
 
@@ -51,11 +50,12 @@ buzz="audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav";
 input = audioread(whiteN);
 scInput = audioread(sweep);
 
-if(scShift_switch)
-scInput = scInput(sc_shift:end,:); % shift scInput of x samples
-end
+
 if(doubleSine_switch)
 scInput= scInput(1:(end-doubleSine_shift+1),:)+scInput(doubleSine_shift:end,:); 
+end
+if(scShift_switch)
+scInput = scInput(sc_shift:end,:); % shift scInput of x samples
 end
 if(not(wholeFile_switch))
 duration= min(duration,length(input)); %take just first x samples, if x < input length
@@ -84,8 +84,8 @@ UIinGain = 0.9;
 UIscGain = 0.9;
 UIoutGain = 1.0;
 
-UIcompAmount = 1.0; % da -1 a 1
-UIexpAmount = 0.0;
+UIcompAmount = 1.0; % da -1 a 1 - "MASKED"
+UIexpAmount = 0.0; % "CLEAR"
 UIatqWeight = 0.0;
 UIstereoLinked = 0.0;
 UImix= 1.0;
