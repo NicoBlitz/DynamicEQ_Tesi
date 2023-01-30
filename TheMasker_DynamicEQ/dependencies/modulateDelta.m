@@ -1,5 +1,3 @@
-
-
 function delta = modulateDelta(delta_raw, parameters, maxGainModule)
     
     delta_mono=mean(delta_raw,2); 

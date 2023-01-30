@@ -68,14 +68,14 @@ function [ fbank, bcen ] = getfbank( F, scale, nb, bwt, wType, trans ) %#codegen
 %         nb = max(1, round(nb));
 %     end
 
-    bhop = (high-low)/(nb-1);
+    bhop = (high-low)/nb;
 
     if isempty(bwt), bw = bhop; end
 
     %olap = bw >= bhop;
     olap = true;
 
-    bcen = low + ((1:nb) * bhop) - bhop;
+    bcen = low + ((1:nb) * bhop) - bhop/2;
 
     infr = x2f(bcen-bw);
     supr = x2f(bcen+bw);
