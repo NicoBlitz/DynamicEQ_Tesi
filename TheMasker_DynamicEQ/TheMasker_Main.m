@@ -10,20 +10,20 @@ addpath(genpath(folder));
 Shared;
 
 %Initialize freq. response plot
-num_L=[ones(1,nfilts); zeros(2,nfilts)];
-den_L=zeros(2,nfilts);
-fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].']);
-num_R=num_L;
-den_R=den_L;
+% num_L=[ones(1,nfilts); zeros(2,nfilts)];
+% den_L=zeros(2,nfilts);
+% fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].']);
+% num_R=num_L;
+% den_R=den_L;
 
 % Internal plotting variables
 blockByBlock_switch=true;
-saveFile=true;
+saveFile=false;
 stereo_plot = false;
-scShift_switch=true; sc_shift = 120000;
-doubleSine_switch=true; doubleSine_shift = 150000;
+scShift_switch=false; sc_shift = 120000;
+doubleSine_switch=false; doubleSine_shift = 150000;
 wholeFile_switch=true;
-step_block=40; 
+step_block=10; 
 duration = 2000000;
 
 th_buffer_max_plot_duration = 200;
@@ -39,6 +39,7 @@ if(saveFile)
     scShift_switch=false;
     th_buffer_max_plot_duration = 1000;
 end
+
 
 
 % Files reading
@@ -104,7 +105,7 @@ UIparams = struct('gain', struct( ...
 
 
 % Get Absolute Threshold in Quiet
-ATQ_decimated = getATQ(frequencies, fbank);
+ATQ_decimated = getATQ(fCenters);
 ATQ_scaled = scaleATQ(ATQ_decimated, UIparams.eq.atq, ATQ_lift, min_dbFS);
 
 
@@ -115,7 +116,7 @@ blockNumber=1;
 
 % --------------------------------------------------------------------------------
 % PROCESS BLOCK 
-% Execute algorithm from first to last sample of the file with a step of buffersize
+% Execute algorithm from first to last sample of the file with a step of buffersize*step_block
 
 for offset = 1:(buffersize*step_block):length(input)-buffersize
     
@@ -125,34 +126,25 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
   
     % Shift among samples and multiply by Input and Sidechain's UI Gain 
     blockIN_Gain = input(offset:blockEnd,:) * UIparams.gain.in;
-    blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc  * 3; % / spread_exp
+    blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc * 3; % / spread_exp
     
     % Calculate block's threshold depending on our psychoacoustic model  
-    relative_threshold= getRelativeThreshold(blockSC_Gain, fs, fbank, spreadingfunctionmatrix); % Left channel rel. threshold
+    [delta, threshold, input_Freq_dB] = getDelta(blockSC_Gain, blockIN_Gain, ATQ_scaled, fs, fbank, spreadingfunctionmatrix); % Left channel rel. threshold
 
-    % Comparing with relative and absolute threshold
-    threshold = max(relative_threshold, ATQ_scaled);
+    % Stereo linked delta processing
+    if (size(delta,2)==2)
+        delta = stereoLinkedProcess(delta, UIparams.eq.stereolink);
+    end
 
-    % Input frequency domain and decimation
-    input_Freq_dB = getMagnitudeFD(blockIN_Gain, fs, nfilts, fbank); % Left channel input fd and decimation
-
-    % Getting delta
-    delta = input_Freq_dB - threshold;
-    
-    % Set delta to zero when threshold (sidechain signal) is under dGating_thresh value, with a knee of dGating_knee (both in positive and negative direction)
-    THclip = (1+tanh((threshold-dGating_thresh)/dGating_knee))/2;
-    %INclip = (1+tanh((input_Freq_dB-dGating_thresh)/dGating_knee))/2;
-
-      % UI modulations
+    % UI modulations
     delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule); % to clip the delta, add maxGainModule as a third parameter
    
-    delta_clipped = delta_modulated .* THclip;
-%     delta_adjust = delta_adjust .* INclip; 
+    delta_clipped = scaleDelta(delta_modulated, threshold, dGating_thresh, dGating_knee);
+%     delta_clipped = delta_modulated;
 
-   
     % Equalization
-    [wetBlock(:,1), num_L, den_L] = peakFilterEq(blockIN_Gain(:,1), delta_clipped(:,1), EQcent, EQband, myFilter_L, filterOrder, num_L, den_L); % Left channel EQing
-    [wetBlock(:,2), num_R, den_R] = peakFilterEq(blockIN_Gain(:,2), delta_clipped(:,2), EQcent, EQband, myFilter_R, filterOrder, num_R, den_R); % Right Channel EQing
+    wetBlock(:,1) = filterBlock(blockIN_Gain(:,1), delta_clipped(:,1), bandFreqs, fs); % Left channel EQing
+    wetBlock(:,2) = filterBlock(blockIN_Gain(:,2), delta_clipped(:,2), bandFreqs, fs); % Right Channel EQing
     
     
     % Threshold reconstruction (current block concatenation)
@@ -163,11 +155,11 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     wetSignal(offset:blockEnd,:)= wetBlock * UIparams.gain.out;
     
     % PLOT PREPARATION
-    DryPlot= getMagnitudeFD(blockIN_Gain, fs, nfilts); % No decimation
+    DryPlot= amp2db(getMagnitudeFD(blockIN_Gain, fs, nfilts)); % No decimation
 
-    SCPlot= getMagnitudeFD(blockSC_Gain, fs, nfilts); % No decimation
+    SCPlot=  amp2db(getMagnitudeFD(blockSC_Gain, fs, nfilts)); % No decimation
 
-    WetPlot= getMagnitudeFD(wetBlock, fs, nfilts); % No decimation
+    WetPlot= amp2db(getMagnitudeFD(wetBlock, fs, nfilts)); % No decimation
 
  
     % ----------------- FIRST PLOT:  
@@ -246,29 +238,30 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
 
 
    % --------------- THIRD PLOT: current block's eq frequency response (will slow down execution)
-   if(blockByBlock_switch)
-    close(fvplot);
-    fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'], 'FrequencyScale','log','Fs',fs, ...
-        'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
-        'Color','white');
-    dbstop in TheMasker_Main.m at 253 if blockByBlock_switch;
-   end
+%    if(blockByBlock_switch)
+%     close(fvplot);
+%     fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'], 'FrequencyScale','log','Fs',fs, ...
+%         'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
+%         'Color','white');
+%    end
 
     % Increment block number
-    blockNumber=blockNumber+1;
+    blockNumber=blockNumber+step_block;
+    dbstop in TheMasker_Main.m at 249 if blockByBlock_switch;
+
 end
 
 % --------------------- THIRD PLOT: last block's eq frequency response 
-close(fvplot);
-fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'],'FrequencyScale','log','Fs',fs, ...
-    'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
-    'Color','white');
+% close(fvplot);
+% fvplot = fvtool([num_L.',[ones(1,length(num_L)); den_L].'],'FrequencyScale','log','Fs',fs, ...
+%     'FrequencyRange', 'Specify freq. vector', 'FrequencyVector', frequencies,...
+%     'Color','white');
 
 % FOURTH PLOT: threshold over time
-blocks=linspace(1,totBlocks,totBlocks);
-hmTrucation=min(th_buffer_max_plot_duration,totBlocks);
-heatmap(blocks(1,totBlocks-hmTrucation+1:end), round(fCenters), thresholdBuffer_L(:,totBlocks-hmTrucation+1:end));
-title('Threshold buffer (left channel)');
+% blocks=linspace(1,totBlocks,totBlocks);
+% hmTrucation=min(th_buffer_max_plot_duration,totBlocks);
+% heatmap(blocks(1,totBlocks-hmTrucation+1:end), round(fCenters), thresholdBuffer_L(:,totBlocks-hmTrucation+1:end));
+% title('Threshold buffer (left channel)');
 
 % Play wet signal
 soundsc(wetSignal,fs);

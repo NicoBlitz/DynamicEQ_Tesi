@@ -1,23 +1,29 @@
-function magnitude_dB = getMagnitudeFD(input, fs, nfilts, fbank)
+function magnitude = getMagnitudeFD(input, fs, nfilts, fbank)
 
     numChannels=size(input,2);
-    input_FD=zeros(length(input)/2,1);
-    input_FD_dec=zeros(nfilts,1);
+    input_FD=zeros(length(input)/2,numChannels);
+    input_FD_dec=zeros(nfilts,numChannels);
+    if (nargin > 3) 
+        magnitude=zeros(nfilts,numChannels);
+    else
+        magnitude=zeros(length(input)/2,numChannels);
+    end
 
     for ch=1:numChannels
+
+        input(:,ch)=input(:,ch).*hann(size(input, 1));
 
         %converting input signal to Frequency Domain
         input_FD(:,ch) = abs(getFD(input(:,ch), fs));
     
         if (nargin > 3) 
         input_FD_dec(:,ch) = fbank*input_FD(:,ch);
-        magnitude_dB(:,ch) = amp2db(input_FD_dec(:,ch));
+        magnitude(:,ch)=input_FD_dec(:,ch);
         else
-        magnitude_dB(:,ch) = amp2db(input_FD(:,ch));
-    
+        magnitude(:,ch)=input_FD(:,ch);
+
         end
-    
-        %convert amp to db
-        
+            
     end
+
 end

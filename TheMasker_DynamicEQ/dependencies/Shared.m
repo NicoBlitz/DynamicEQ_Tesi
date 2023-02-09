@@ -32,34 +32,59 @@ maxGainModule=20;
 dGating_thresh = -40; % in dBFS
 dGating_knee = 10; % in dB
 
-
-% PeakEQFilter variables
-myFilter_L = dsp.BiquadFilter( ...
-    SOSMatrixSource="Input port", ...
-    ScaleValuesInputPort=false);
-myFilter_R = dsp.BiquadFilter( ...
-    SOSMatrixSource="Input port", ...
-    ScaleValuesInputPort=false);
-
-filterOrder = 2;
-
-% "Q" calculation (necessary for designParamEQ() )
-octaves=(hz2st(maxfreq)-hz2st(minfreq))/12;
-bw_oct=octaves/nfilts;
-% Q=sqrt(2^(bw_oct))/(2^bw_oct-1)/2; %definire empiricamente
-
-% Q(1)=4;
-% Q= 2.7;
-q_range=2;
-q_min=0.4;
-q_exp=0.4;
-Q=(linspace(0,1,nfilts).^q_exp)*q_range+q_min;
-% Frequency centers and bands normalized from 0 to 1, where 1 is nyquist frequency (necessary for designParamEQ() )
-EQcent=fCenters/nyquistFreq;
-EQband=zeros(1,nfilts);
-for i=1:nfilts  
-    EQband(i)=EQcent(i)/Q(i);
+%CrossoverFilters
+crossFreqs=zeros(nfilts-1,1);
+for i = 1:nfilts-1 
+    crossFreqs(i) = (fCenters(i) + fCenters(i + 1)) / 2;
 end
+
+
+bandFreqs=zeros(nfilts,2);
+for i=1:nfilts
+    if (i==1) 
+        bandFreqs(i,1)=0.001;
+    else 
+        bandFreqs(i,1)=crossFreqs(i-1)/(fs/2);
+    end
+
+    if (i==nfilts) 
+        bandFreqs(i,2)=0.999; 
+    else 
+        bandFreqs(i,2)=crossFreqs(i)/(fs/2);
+    end
+
+end
+
+true_crossFreqs=bandFreqs*(fs/2);
+
+
+% % PeakEQFilter variables
+% myFilter_L = dsp.BiquadFilter( ...
+%     SOSMatrixSource="Input port", ...
+%     ScaleValuesInputPort=false);
+% myFilter_R = dsp.BiquadFilter( ...
+%     SOSMatrixSource="Input port", ...
+%     ScaleValuesInputPort=false);
+% 
+% filterOrder = 2;
+% 
+% % "Q" calculation (necessary for designParamEQ() )
+% octaves=(hz2st(maxfreq)-hz2st(minfreq))/12;
+% bw_oct=octaves/nfilts;
+% % Q=sqrt(2^(bw_oct))/(2^bw_oct-1)/2; %definire empiricamente
+% 
+% % Q(1)=4;
+% % Q= 2.7;
+% q_range=2;
+% q_min=0.4;
+% q_exp=0.4;
+% Q=(linspace(0,1,nfilts).^q_exp)*q_range+q_min;
+% % Frequency centers and bands normalized from 0 to 1, where 1 is nyquist frequency (necessary for designParamEQ() )
+% EQcent=fCenters/nyquistFreq;
+% EQband=zeros(1,nfilts);
+% for i=1:nfilts  
+%     EQband(i)=EQcent(i)/Q(i);
+% end
 
 
 

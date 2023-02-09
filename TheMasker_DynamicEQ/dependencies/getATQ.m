@@ -1,8 +1,7 @@
 
 
-function ATQ = getATQ(f, fbank)
+function ATQ = getATQ(f)
   
-    %convert the bark subband frequencies to Hz:
     clipMinimum=-20;
     clipMaximum=160;
    
@@ -15,11 +14,7 @@ function ATQ = getATQ(f, fbank)
     %Clip
     absThresh(absThresh>=clipMaximum) =  clipMaximum;
     absThresh(absThresh<=clipMinimum) = clipMinimum;
-
-    absThresh= db2amp(absThresh); % convert ATQ (nfft points) to dB
-    ATQ_transposed = absThresh.';
-    ATQ = fbank*ATQ_transposed; % decimate ATQ to nfilts points
-    ATQ = amp2db(ATQ); % convert ATQ (nfilts points) to dB
+    ATQ = absThresh.';
     ATQ = ATQ - (abs(min(ATQ))); % Relocate ATQ so that minimum is at 0
 
 
