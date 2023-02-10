@@ -139,27 +139,27 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     % UI modulations
     delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule); % to clip the delta, add maxGainModule as a third parameter
    
-    delta_clipped = scaleDelta(delta_modulated, threshold, dGating_thresh, dGating_knee);
-%     delta_clipped = delta_modulated;
+%     delta_clipped = scaleDelta(delta_modulated, threshold, dGating_thresh, dGating_knee);
+    delta_clipped = delta_modulated;
 
     % Equalization
     wetBlock(:,1) = filterBlock(blockIN_Gain(:,1), delta_clipped(:,1), bandFreqs, fs); % Left channel EQing
     wetBlock(:,2) = filterBlock(blockIN_Gain(:,2), delta_clipped(:,2), bandFreqs, fs); % Right Channel EQing
     
-    
     % Threshold reconstruction (current block concatenation)
-    thresholdBuffer_L(:,blockNumber)=threshold(:,1);
-    thresholdBuffer_R(:,blockNumber)=threshold(:,2);
+    thresholdBuffer_L(:,blockNumber) = threshold(:,1);
+    thresholdBuffer_R(:,blockNumber) = threshold(:,2);
     
     % Signal reconstruction (current block concatenation)
-    wetSignal(offset:blockEnd,:)= wetBlock * UIparams.gain.out;
+    wetBlock_Gain = wetBlock * UIparams.gain.out;
+    wetSignal(offset:blockEnd,:)= wetBlock_Gain;
     
     % PLOT PREPARATION
     DryPlot= amp2db(getMagnitudeFD(blockIN_Gain, fs, nfilts)); % No decimation
 
     SCPlot=  amp2db(getMagnitudeFD(blockSC_Gain, fs, nfilts)); % No decimation
 
-    WetPlot= amp2db(getMagnitudeFD(wetBlock, fs, nfilts)); % No decimation
+    WetPlot= amp2db(getMagnitudeFD(wetBlock_Gain, fs, nfilts)); % No decimation
 
  
     % ----------------- FIRST PLOT:  
@@ -187,7 +187,6 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     DLT_RAWplot = semilogx(fCenters, delta(:,1), ':black');
     DLT_NCplot = semilogx(fCenters, delta_modulated(:,1), '--magenta');
     DLTplot = semilogx(fCenters, delta_clipped(:,1), 'red');
-
 
 
     

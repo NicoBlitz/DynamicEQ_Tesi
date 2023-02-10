@@ -55,7 +55,7 @@ for i=1:nfilts
 
 end
 
-true_crossFreqs=bandFreqs*(fs/2);
+% true_crossFreqs=bandFreqs*(fs/2);
 
 
 % % PeakEQFilter variables

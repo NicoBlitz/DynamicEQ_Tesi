@@ -83,7 +83,7 @@ function [ fbank, bcen ] = getfbank( F, scale, nb, bwt, wType, trans ) %#codegen
 
     if olap
         infr(1) = F(1);
-%         supr(end) = F(end);
+        supr(end) = F(end);
     end
 
     n = length(F);
