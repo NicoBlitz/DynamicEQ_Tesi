@@ -1,4 +1,4 @@
-function [delta, threshold, in_dB] = getDelta(blockSC_Gain, blockIN_Gain, ATQ_scaled, fs, fbank, spreadingFunctionMatrix)
+function [delta, threshold, in_dB] = getDelta(blockSC_Gain, blockIN_Gain, ATQ_scaled, fs, fbank, spreadingFunctionMatrix, freqs)
     numChannels=size(blockSC_Gain,2);
     nfilts=size(fbank,1);
     %amplitude_ratio_barks=zeros(size(fbank,1),numChannels);
@@ -9,8 +9,8 @@ function [delta, threshold, in_dB] = getDelta(blockSC_Gain, blockIN_Gain, ATQ_sc
     threshold = zeros(nfilts,numChannels);
     delta = zeros(nfilts,numChannels);
 
-    input = getMagnitudeFD(blockIN_Gain, fs, nfilts, fbank);
-    sidechain = getMagnitudeFD(blockSC_Gain, fs, nfilts, fbank);
+    input = getMagnitudeFD(blockIN_Gain, fs, nfilts, freqs, fbank);
+    sidechain = getMagnitudeFD(blockSC_Gain, fs, nfilts, freqs, fbank);
 
     for ch=1:numChannels
 

@@ -26,6 +26,7 @@ function [ X, F, T, x ] = getFD( x, Fs, hop, w )
         F = linspace(1,Fs/2,wsize/2)';
         T = 0;
         X = fft(x);
+        %old: X = X(1:floor(end/2)+1,:);
         X = X(1:floor(end/2),:);
         X = X/wsize;
         X(2:end-1,:) = X(2:end-1,:) * 2; 

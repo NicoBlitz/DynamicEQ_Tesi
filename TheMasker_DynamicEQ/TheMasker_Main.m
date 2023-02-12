@@ -129,7 +129,7 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     blockSC_Gain = scInput(offset:blockEnd,:) * UIparams.gain.sc * 3; % / spread_exp
     
     % Calculate block's threshold depending on our psychoacoustic model  
-    [delta, threshold, input_Freq_dB] = getDelta(blockSC_Gain, blockIN_Gain, ATQ_scaled, fs, fbank, spreadingfunctionmatrix); % Left channel rel. threshold
+    [delta, threshold, input_Freq_dB] = getDelta(blockSC_Gain, blockIN_Gain, ATQ_scaled, fs, fbank, spreadingfunctionmatrix, frequencies); % Left channel rel. threshold
 
     % Stereo linked delta processing
     if (size(delta,2)==2)
@@ -155,11 +155,11 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     wetSignal(offset:blockEnd,:)= wetBlock_Gain;
     
     % PLOT PREPARATION
-    DryPlot= amp2db(getMagnitudeFD(blockIN_Gain, fs, nfilts)); % No decimation
+    DryPlot= amp2db(getMagnitudeFD(blockIN_Gain, fs, nfilts, frequencies)); % No decimation
 
-    SCPlot=  amp2db(getMagnitudeFD(blockSC_Gain, fs, nfilts)); % No decimation
+    SCPlot=  amp2db(getMagnitudeFD(blockSC_Gain, fs, nfilts, frequencies)); % No decimation
 
-    WetPlot= amp2db(getMagnitudeFD(wetBlock_Gain, fs, nfilts)); % No decimation
+    WetPlot= amp2db(getMagnitudeFD(wetBlock_Gain, fs, nfilts, frequencies)); % No decimation
 
  
     % ----------------- FIRST PLOT:  

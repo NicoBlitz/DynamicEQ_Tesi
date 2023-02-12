@@ -1,4 +1,4 @@
-function [ X, F, T, x ] = getFD( x, Fs, hop, w )
+function [ X_interp, F, T, x ] = getFD( x, Fs, frequencies, hop, w )
 %GETFD Given a signal in time domain returns the frequency domain
 %
 %[ X, F, T ] = GETFD( x )
@@ -17,7 +17,7 @@ function [ X, F, T, x ] = getFD( x, Fs, hop, w )
 
     if nargin < 2, Fs = 1; end
 
-    if nargin < 3
+    if nargin < 4
         x = x(:);
         wsize = size(x,1);
 
@@ -30,6 +30,7 @@ function [ X, F, T, x ] = getFD( x, Fs, hop, w )
         X = X(1:floor(end/2),:);
         X = X/wsize;
         X(2:end-1,:) = X(2:end-1,:) * 2; 
+        X_interp = interp1(F,X,frequencies);
     else
         wsize = max(size(w));
         olap = wsize-hop;
