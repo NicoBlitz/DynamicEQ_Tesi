@@ -139,8 +139,8 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     % UI modulations
     delta_modulated = modulateDelta(delta, UIparams.eq, maxGainModule); % to clip the delta, add maxGainModule as a third parameter
    
-%     delta_clipped = scaleDelta(delta_modulated, threshold, dGating_thresh, dGating_knee);
-    delta_clipped = delta_modulated;
+    delta_clipped = scaleDelta(delta_modulated, threshold, dGating_thresh, dGating_knee);
+    %delta_clipped = delta_modulated;
 
     % Equalization
     wetBlock(:,1) = filterBlock(blockIN_Gain(:,1), delta_clipped(:,1), bandFreqs, fs); % Left channel EQing
