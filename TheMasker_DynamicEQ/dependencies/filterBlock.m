@@ -1,4 +1,4 @@
-function equalizedSignal = filterBlock(originalSignal, delta, bandFreqs, fs)
+ function equalizedSignal = filterBlock(originalSignal, delta, bandFreqs, fs)
 
     equalizedSignal = zeros(size(originalSignal,1),1);
     filter_order=4;

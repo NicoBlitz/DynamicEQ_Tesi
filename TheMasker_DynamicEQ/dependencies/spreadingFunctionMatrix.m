@@ -20,5 +20,4 @@ function spreadingfuncmatrix = spreadingFunctionMatrix(maxfreq,nfilts,alpha_exp)
          spreadingfuncmatrix(:,k) = spreadingfunctionBarkVoltage((nfilts-k+1):(2*nfilts-k));
      end
 
-
 end

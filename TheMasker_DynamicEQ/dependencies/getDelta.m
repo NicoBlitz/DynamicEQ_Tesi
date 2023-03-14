@@ -9,14 +9,11 @@ function [delta, threshold, in_dB] = getDelta(blockSC_Gain, blockIN_Gain, ATQ_sc
     threshold = zeros(nfilts,numChannels);
     delta = zeros(nfilts,numChannels);
 
+    %get input and sc in Frequency Domain (also decimate)
     input = getMagnitudeFD(blockIN_Gain, fs, nfilts, freqs, fbank);
     sidechain = getMagnitudeFD(blockSC_Gain, fs, nfilts, freqs, fbank);
 
-    for ch=1:numChannels
-
-        % Get Frequency Domain & decimate (in bark domain)
-        %amplitude_ratio_barks(:,ch)=fbank*abs(getFD(blockSC_Gain(:,ch), fs));
-        
+    for ch=1:numChannels        
         
 
         % "Spread" the threshold
