@@ -43,11 +43,11 @@ end
 
 
 % Files reading
-michael= "audio\Michael Buble edit.wav";
-sweep="audio\sineSweep.wav";
-whiteN="audio\whiteNoise_long.wav";
-pinkN="audio\pink noise.wav";
-buzz="audio\Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav";
+michael= "audio/Michael Buble edit.wav";
+sweep="audio/sineSweep.wav";
+whiteN="audio/whiteNoise_long.wav";
+pinkN="audio/pink noise.wav";
+buzz="audio/Explainer_Video_Clock_Alarm_Buzz_Timer_5.wav";
 input = audioread(whiteN);
 scInput = audioread(sweep);
 
@@ -167,26 +167,26 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     subplot(1,2,1);
 
     % Plot input
-    INplot_L= semilogx(fCenters, input_Freq_dB(:,1), 'blue');
+    INplot_L= semilogx(fCenters, input_Freq_dB(:,1), 'blue','LineWidth', 2);
     hold on;
     if(stereo_plot==true)
-    INplot_R= semilogx(fCenters, input_Freq_dB(:,2), 'Color', 'red');
+    INplot_R= semilogx(fCenters, input_Freq_dB(:,2), 'Color', 'red','LineWidth', 2);
     end
     % Plot relative and absolute thresholds
     
-    ATQplot = semilogx(fCenters, ATQ_scaled, ':black');
-    THplot_L= semilogx(fCenters, threshold(:,1), '--', 'Color', [0 0.4470 0.7410]);
+    ATQplot = semilogx(fCenters, ATQ_scaled, ':black','LineWidth', 2);
+    THplot_L= semilogx(fCenters, threshold(:,1), '--', 'Color', [0 0.4470 0.7410],'LineWidth', 2);
     if(stereo_plot==true)
-    THplot_R= semilogx(fCenters, threshold(:,2), '--', 'Color', [0.9350 0.0780 0.1840]);
+    THplot_R= semilogx(fCenters, threshold(:,2), '--', 'Color', [0.9350 0.0780 0.1840],'LineWidth', 2);
     end
     % Plot delta negative and positive.
 %     deltaPlot_L= bar(fCenters, delta_modulated(:,1), 'b');
 %     if(stereo_plot==true)
 %     deltaPlot_R= bar(fCenters, delta_modulated(:,2), 'r');
 %     end
-    DLT_RAWplot = semilogx(fCenters, delta(:,1), ':black');
-    DLT_NCplot = semilogx(fCenters, delta_modulated(:,1), '--magenta');
-    DLTplot = semilogx(fCenters, delta_clipped(:,1), 'red');
+    DLT_RAWplot = semilogx(fCenters, delta(:,1), ':black', 'LineWidth', 2);
+    DLT_NCplot = semilogx(fCenters, delta_modulated(:,1), '--magenta', 'LineWidth', 2);
+    DLTplot = semilogx(fCenters, delta_clipped(:,1), 'red', 'LineWidth', 2);
 
 
     
