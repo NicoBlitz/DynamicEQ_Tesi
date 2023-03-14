@@ -87,7 +87,7 @@ UIoutGain = 1.0;
 
 UIcompAmount = 1.0; % da -1 a 1 - "MASKED"
 UIexpAmount = 0.0; % "CLEAR"
-UIatqWeight = 0.0;
+UIatqWeight = 0.8; % cleanup
 UIstereoLinked = 0.0;
 UImix= 1.0;
 
@@ -174,7 +174,7 @@ for offset = 1:(buffersize*step_block):length(input)-buffersize
     end
     % Plot relative and absolute thresholds
     
-    ATQplot = semilogx(fCenters, ATQ_scaled, ':black','LineWidth', 2);
+    ATQplot = semilogx(fCenters, ATQ_scaled, ':', 'Color', [0.2, 0.7, 0.4], 'LineWidth', 2);
     THplot_L= semilogx(fCenters, threshold(:,1), '--', 'Color', [0 0.4470 0.7410],'LineWidth', 2);
     if(stereo_plot==true)
     THplot_R= semilogx(fCenters, threshold(:,2), '--', 'Color', [0.9350 0.0780 0.1840],'LineWidth', 2);
